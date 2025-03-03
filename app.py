@@ -1,7 +1,7 @@
 import os
 import logging
-from flask import Flask, render_template, request, jsonify, flash
-from flask_login import LoginManager
+from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
+from flask_login import LoginManager, login_required, current_user
 from proxmox import ProxmoxAPI
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
@@ -82,9 +82,12 @@ app.register_blueprint(auth_blueprint)
 
 @app.route('/')
 def index():
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
     return render_template('index.html')
 
 @app.route('/api/resources', methods=['GET'])
+@login_required
 def get_resources():
     try:
         if DEV_MODE:
@@ -104,6 +107,7 @@ def get_resources():
         }), 500
 
 @app.route('/api/deploy', methods=['POST'])
+@login_required
 def deploy_container():
     try:
         if DEV_MODE:
