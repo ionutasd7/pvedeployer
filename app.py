@@ -1,11 +1,16 @@
 import os
 import logging
+import os
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
 from flask_login import LoginManager, login_required, current_user
 from proxmox import ProxmoxAPI
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Development mode when PROXMOX_HOST is not set
 DEV_MODE = not os.environ.get("PROXMOX_HOST")
@@ -102,7 +107,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET")
 
 # configure the database, relative to the app instance folder
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///app.db")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
