@@ -1,0 +1,32 @@
+proxmox-ui@srvansible01p:~/pvedeployer$ sudo nano /etc/nginx/sites-available/proxmox-ui
+proxmox-ui@srvansible01p:~/pvedeployer$ sudo ln -s /etc/nginx/sites-available/proxmox-ui /etc/nginx/sites-enabled/
+sudo nginx -t  # Test the configuration
+sudo systemctl reload nginx
+ln: failed to create symbolic link '/etc/nginx/sites-enabled/proxmox-ui': File exists
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+proxmox-ui@srvansible01p:~/pvedeployer$ sudo nano /etc/systemd/system/proxmox-ui.service
+proxmox-ui@srvansible01p:~/pvedeployer$ sudo systemctl daemon-reload
+sudo systemctl enable proxmox-ui
+sudo systemctl start proxmox-ui
+sudo systemctl status proxmox-ui
+Created symlink /etc/systemd/system/multi-user.target.wants/proxmox-ui.service → /etc/systemd/system/proxmox-ui.service.
+Job for proxmox-ui.service failed because of unavailable resources or another system error.
+See "systemctl status proxmox-ui.service" and "journalctl -xeu proxmox-ui.service" for details.
+● proxmox-ui.service - Proxmox Deployment Interface
+     Loaded: loaded (/etc/systemd/system/proxmox-ui.service; enabled; preset: enabled)
+     Active: activating (auto-restart) (Result: resources) since Mon 2025-03-03 15:30:03 EET; 12ms ago
+        CPU: 0
+proxmox-ui@srvansible01p:~/pvedeployer$ sudo systemctl status proxmox-ui
+● proxmox-ui.service - Proxmox Deployment Interface
+     Loaded: loaded (/etc/systemd/system/proxmox-ui.service; enabled; preset: enabled)
+     Active: activating (auto-restart) (Result: resources) since Mon 2025-03-03 15:30:08 EET; 1s ago
+        CPU: 0
+proxmox-ui@srvansible01p:~/pvedeployer$ sudo systemctl start proxmox-ui
+Job for proxmox-ui.service failed because of unavailable resources or another system error.
+See "systemctl status proxmox-ui.service" and "journalctl -xeu proxmox-ui.service" for details.
+proxmox-ui@srvansible01p:~/pvedeployer$ journalctl -xeu proxmox-ui.service
+Hint: You are currently not seeing messages from other users and the system.
+      Users in groups 'adm', 'systemd-journal' can see all messages.
+      Pass -q to turn off this notice.
+~
