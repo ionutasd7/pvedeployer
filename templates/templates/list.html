@@ -1,0 +1,140 @@
+
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i data-feather="box"></i> Deployment Templates</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTemplateModal">
+            <i data-feather="plus"></i> Add Template
+        </button>
+    </div>
+
+    <div class="card border-0 shadow-lg mb-4">
+        <div class="card-header bg-primary bg-gradient text-white">
+            <h4 class="mb-0">Available Templates</h4>
+        </div>
+        <div class="card-body">
+            {% if templates %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Format</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for template in templates %}
+                        <tr>
+                            <td>{{ template.volid.split('/')[-1] }}</td>
+                            <td>
+                                {% if template.type == 'lxc' %}
+                                <span class="badge bg-info">LXC Template</span>
+                                {% else %}
+                                <span class="badge bg-primary">VM Template</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ (template.size / 1024 / 1024)|round(2) }} MB</td>
+                            <td>{{ template.format }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-primary" onclick="useTemplate('{{ template.volid }}')">
+                                        <i data-feather="play" style="width: 14px;"></i> Deploy
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info">
+                                        <i data-feather="info" style="width: 14px;"></i> Details
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i data-feather="info"></i> No templates available. Add a template to get started.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Template Modal -->
+<div class="modal fade" id="addTemplateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Add New Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="templateForm">
+                    <div class="mb-3">
+                        <label class="form-label">Template Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Template Type</label>
+                        <select class="form-select" name="type" required>
+                            <option value="lxc">LXC Container</option>
+                            <option value="vm">Virtual Machine</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Source</label>
+                        <select class="form-select" name="source" required>
+                            <option value="upload">Upload ISO/Template</option>
+                            <option value="url">Download from URL</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Storage Location</label>
+                        <select class="form-select" name="storage" required>
+                            <option value="local-lvm">local-lvm</option>
+                            <option value="ceph-pool">ceph-pool</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveTemplateBtn">Save Template</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Function to use a template for deployment
+    function useTemplate(templateId) {
+        // Redirect to deployment form with template pre-selected
+        window.location.href = `/deployments/new?template=${encodeURIComponent(templateId)}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const saveTemplateBtn = document.getElementById('saveTemplateBtn');
+        const templateForm = document.getElementById('templateForm');
+        
+        // Handle template save
+        saveTemplateBtn.addEventListener('click', function() {
+            // In a real app, this would submit the form data to the server
+            // For now, just close the modal and show feedback
+            alert('Template creation would be implemented in production.');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addTemplateModal'));
+            modal.hide();
+        });
+        
+        // Refresh icons
+        feather.replace();
+    });
+</script>
+{% endblock %}

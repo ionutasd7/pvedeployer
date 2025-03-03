@@ -1,0 +1,179 @@
+
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i data-feather="play"></i> New Deployment</h2>
+        <a href="{{ url_for('deployments.list_deployments') }}" class="btn btn-outline-secondary">
+            <i data-feather="arrow-left"></i> Back to Deployments
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-lg mb-4">
+        <div class="card-header bg-primary bg-gradient text-white">
+            <h4 class="mb-0">Create New Deployment</h4>
+        </div>
+        <div class="card-body">
+            <form id="deployForm" action="{{ url_for('api_deploy') }}" method="POST">
+                <div class="mb-4">
+                    <label class="form-label">Deployment Name</label>
+                    <input type="text" class="form-control form-control-lg" name="name" required
+                          placeholder="e.g., web-server-01, db-mysql-prod">
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Template</label>
+                        <select class="form-select form-select-lg" name="template" required>
+                            <option value="">Select a template...</option>
+                            <option value="local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz" {% if template_id == "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz" %}selected{% endif %}>Ubuntu 22.04 LXC</option>
+                            <option value="local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz" {% if template_id == "local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz" %}selected{% endif %}>Debian 11 LXC</option>
+                            <option value="ceph-pool:vm/template/ubuntu-22.04-cloud" {% if template_id == "ceph-pool:vm/template/ubuntu-22.04-cloud" %}selected{% endif %}>Ubuntu 22.04 VM</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Node</label>
+                        <select class="form-select form-select-lg" name="node" required>
+                            <option value="">Select a node...</option>
+                            {% for node in nodes %}
+                            <option value="{{ node.id }}">{{ node.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">CPU Cores</label>
+                        <input type="number" class="form-control form-control-lg" name="cpu" value="1" min="1" max="32" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Memory (MB)</label>
+                        <input type="number" class="form-control form-control-lg" name="memory" value="1024" min="512" step="512" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Storage (GB)</label>
+                        <input type="number" class="form-control form-control-lg" name="storage" value="10" min="5" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">IP Address</label>
+                    <input type="text" class="form-control form-control-lg" name="ip_address" 
+                           placeholder="e.g., 192.168.1.100/24">
+                    <div class="form-text">Leave blank for DHCP</div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Post-Deployment Scripts</label>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="install_monitoring" id="install_monitoring">
+                        <label class="form-check-label" for="install_monitoring">
+                            Install Monitoring Agent
+                        </label>
+                    </div>
+                    <a href="{{ url_for('scripts.list_scripts') }}" class="btn btn-sm btn-outline-primary">
+                        <i data-feather="settings"></i> Manage Scripts
+                    </a>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Tags</label>
+                    <input type="text" class="form-control form-control-lg" name="tags" placeholder="e.g., production, web-server, database">
+                    <div class="form-text">Separate tags with commas</div>
+                </div>
+
+                <div class="alert alert-danger d-none" id="errorAlert"></div>
+                <div class="alert alert-success d-none" id="successAlert"></div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg" id="deployBtn">
+                        <span class="spinner-border spinner-border-sm d-none" id="deploySpinner"></span>
+                        Deploy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deployForm = document.getElementById('deployForm');
+    const deployBtn = document.getElementById('deployBtn');
+    const deploySpinner = document.getElementById('deploySpinner');
+    const errorAlert = document.getElementById('errorAlert');
+    const successAlert = document.getElementById('successAlert');
+
+    // Handle form submission
+    deployForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Reset alerts
+        errorAlert.classList.add('d-none');
+        successAlert.classList.add('d-none');
+
+        // Show loading state
+        deployBtn.disabled = true;
+        deploySpinner.classList.remove('d-none');
+
+        try {
+            // Get form data
+            const formData = new FormData(deployForm);
+            const data = {
+                name: formData.get('name'),
+                template: formData.get('template'),
+                node: formData.get('node'),
+                cpu: parseInt(formData.get('cpu')),
+                memory: parseInt(formData.get('memory')),
+                storage: parseInt(formData.get('storage')),
+                ip_address: formData.get('ip_address'),
+                tags: formData.get('tags').split(',').map(tag => tag.trim()),
+                type: formData.get('template').includes('vztmpl') ? 'lxc' : 'vm',
+                monitoring: formData.get('install_monitoring') === 'on'
+            };
+
+            // Send request
+            const response = await fetch('/api/deploy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Show success
+                successAlert.textContent = `Deployment successful! ${result.message || ''}`;
+                successAlert.classList.remove('d-none');
+
+                // Redirect to deployment list after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/deployments';
+                }, 2000);
+            } else {
+                // Show error
+                errorAlert.textContent = `Deployment failed: ${result.error || 'Unknown error'}`;
+                if (result.details) {
+                    errorAlert.textContent += ` (${result.details})`;
+                }
+                errorAlert.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error('Error during deployment:', error);
+            errorAlert.textContent = `Error: ${error.message || 'Failed to connect to server'}`;
+            errorAlert.classList.remove('d-none');
+        } finally {
+            // Reset loading state
+            deployBtn.disabled = false;
+            deploySpinner.classList.add('d-none');
+        }
+    });
+});
+</script>
+{% endblock %}

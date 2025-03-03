@@ -1,0 +1,98 @@
+
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i data-feather="play"></i> Deployments</h2>
+        <a href="{{ url_for('deployments.new_deployment') }}" class="btn btn-primary">
+            <i data-feather="plus"></i> New Deployment
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-lg mb-4">
+        <div class="card-header bg-primary bg-gradient text-white">
+            <h4 class="mb-0">Your Deployments</h4>
+        </div>
+        <div class="card-body">
+            {% if deployments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Node</th>
+                            <th>Status</th>
+                            <th>IP Address</th>
+                            <th>Resources</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for deployment in deployments %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('deployments.view_deployment', deployment_id=deployment.id) }}">
+                                    {{ deployment.name }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if deployment.type == 'lxc' %}
+                                <span class="badge bg-info">LXC</span>
+                                {% else %}
+                                <span class="badge bg-primary">VM</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ deployment.node.name }}</td>
+                            <td>
+                                {% if deployment.status == 'running' %}
+                                <span class="badge bg-success">Running</span>
+                                {% elif deployment.status == 'stopped' %}
+                                <span class="badge bg-danger">Stopped</span>
+                                {% else %}
+                                <span class="badge bg-warning">{{ deployment.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ deployment.ip_address }}</td>
+                            <td>
+                                <small>
+                                    CPU: {{ deployment.cpu }} cores<br>
+                                    RAM: {{ deployment.memory // 1024 }} GB<br>
+                                    Storage: {{ deployment.storage }} GB
+                                </small>
+                            </td>
+                            <td>{{ deployment.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('deployments.view_deployment', deployment_id=deployment.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i data-feather="eye" style="width: 14px;"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-success">
+                                        <i data-feather="play" style="width: 14px;"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i data-feather="power" style="width: 14px;"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i data-feather="info"></i> No deployments found. Create your first deployment to get started.
+            </div>
+            <div class="text-center mt-3">
+                <a href="{{ url_for('deployments.new_deployment') }}" class="btn btn-primary">
+                    <i data-feather="plus"></i> Create Deployment
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

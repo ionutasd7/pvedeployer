@@ -192,10 +192,14 @@ else:
 from routes.auth import auth as auth_blueprint
 from routes.nodes import nodes as nodes_blueprint
 from routes.scripts import scripts as scripts_blueprint
+from routes.templates import templates_bp as templates_blueprint
+from routes.deployments import deployments as deployments_blueprint
 
 app.register_blueprint(auth_blueprint)
 app.register_blueprint(nodes_blueprint)
 app.register_blueprint(scripts_blueprint)
+app.register_blueprint(templates_blueprint)
+app.register_blueprint(deployments_blueprint)
 
 @app.route('/')
 def index():

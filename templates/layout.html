@@ -198,17 +198,17 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#templates">
+                        <a class="nav-link" href="{{ url_for('templates_bp.list_templates') }}">
                             <i data-feather="box"></i> Templates
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#deployments">
+                        <a class="nav-link" href="{{ url_for('deployments.list_deployments') }}">
                             <i data-feather="play"></i> Deployments
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#monitoring">
+                        <a class="nav-link" href="{{ url_for('monitoring') }}">
                             <i data-feather="activity"></i> Monitoring
                         </a>
                     </li>
