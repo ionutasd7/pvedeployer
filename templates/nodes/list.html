@@ -1,0 +1,128 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i data-feather="server"></i> Proxmox Nodes</h2>
+        <a href="{{ url_for('nodes.add_node') }}" class="btn btn-primary">
+            <i data-feather="plus"></i> Add Node
+        </a>
+    </div>
+
+    {% if nodes %}
+    <div class="row">
+        {% for node in nodes %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i data-feather="hard-drive"></i> {{ node.name }}
+                    </h5>
+                    <span class="badge {% if node.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                        {{ "Online" if node.is_active else "Offline" }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Host:</strong> {{ node.host }}
+                    </div>
+                    
+                    <div class="resource-stats">
+                        {% if node.resources %}
+                        <h6>Resources</h6>
+                        <div class="progress mb-2">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ (node.resources.cpu * 100)|round|int }}%">
+                                CPU: {{ (node.resources.cpu * 100)|round|int }}%
+                            </div>
+                        </div>
+                        <div class="progress mb-2">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ (node.resources.memory * 100)|round|int }}%">
+                                Memory: {{ (node.resources.memory * 100)|round|int }}%
+                            </div>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ (node.resources.storage * 100)|round|int }}%">
+                                Storage: {{ (node.resources.storage * 100)|round|int }}%
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-muted">
+                            <i data-feather="alert-circle"></i> Resource data not available
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="btn-group">
+                        <a href="#" class="btn btn-sm btn-outline-primary refresh-resources" 
+                           data-node-id="{{ node.id }}">
+                            <i data-feather="refresh-cw"></i> Refresh
+                        </a>
+                        <a href="#" class="btn btn-sm btn-outline-info">
+                            <i data-feather="activity"></i> Details
+                        </a>
+                    </div>
+                    <small class="text-muted float-end">
+                        Last updated: {{ node.last_checked.strftime('%Y-%m-%d %H:%M:%S') if node.last_checked else 'Never' }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <h4 class="alert-heading"><i data-feather="info"></i> No Nodes Found</h4>
+        <p>You haven't added any Proxmox nodes yet. Click the "Add Node" button to get started.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Refresh node resources
+    document.querySelectorAll('.refresh-resources').forEach(button => {
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const nodeId = this.dataset.nodeId;
+            const icon = this.querySelector('i');
+            
+            // Add spinning animation
+            icon.classList.add('spin');
+            
+            try {
+                const response = await fetch(`/nodes/${nodeId}/resources`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Refresh the page to show updated resources
+                    location.reload();
+                } else {
+                    throw new Error(data.error || 'Failed to refresh resources');
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            } finally {
+                icon.classList.remove('spin');
+            }
+        });
+    });
+});
+</script>
+<style>
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+</style>
+{% endblock %}

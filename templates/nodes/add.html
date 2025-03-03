@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i data-feather="plus-circle"></i> Add New Proxmox Node
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Node Name</label>
+                            <input type="text" class="form-control" name="name" required
+                                   placeholder="e.g., Proxmox-Main">
+                            <div class="form-text">A friendly name to identify this node</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Host</label>
+                            <input type="text" class="form-control" name="host" required
+                                   placeholder="e.g., 192.168.1.100 or proxmox.local">
+                            <div class="form-text">IP address or hostname of your Proxmox server</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" name="user" required
+                                   placeholder="e.g., root@pam">
+                            <div class="form-text">Proxmox username (e.g., root@pam or admin@pve)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Password or API Token</label>
+                            <input type="password" class="form-control" name="password" required>
+                            <div class="form-text">Your Proxmox password or API token</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="verify_ssl" id="verify_ssl">
+                                <label class="form-check-label" for="verify_ssl">
+                                    Verify SSL Certificate
+                                </label>
+                            </div>
+                            <div class="form-text">
+                                Disable for self-signed certificates (common in LAN setups)
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i data-feather="save"></i> Add Node
+                            </button>
+                            <a href="{{ url_for('nodes.list_nodes') }}" class="btn btn-outline-secondary">
+                                <i data-feather="x"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

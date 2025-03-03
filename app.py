@@ -38,6 +38,7 @@ def load_user(user_id):
 with app.app_context():
     # Make sure to import the models here or their tables won't be created
     import models  # noqa: F401
+
     db.create_all()
 
 # Configure logging
@@ -78,7 +79,10 @@ MOCK_RESOURCES = {
 
 # Register blueprints
 from routes.auth import auth as auth_blueprint
+from routes.nodes import nodes as nodes_blueprint
+
 app.register_blueprint(auth_blueprint)
+app.register_blueprint(nodes_blueprint)
 
 @app.route('/')
 def index():
