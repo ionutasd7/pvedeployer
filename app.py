@@ -5,11 +5,128 @@ from flask_login import LoginManager, login_required, current_user
 from proxmox import ProxmoxAPI
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
+from datetime import datetime
 
+# Development mode when PROXMOX_HOST is not set
+DEV_MODE = not os.environ.get("PROXMOX_HOST")
+
+# Mock data for development testing
+MOCK_RESOURCES = {
+    "nodes": [
+        {
+            "node": "pve-1",
+            "status": "online",
+            "cpu": 0.15,  # 15% CPU usage
+            "maxcpu": 32,
+            "memory": {
+                "total": 128 * 1024,  # 128GB in MB
+                "used": 32 * 1024,    # 32GB used
+                "free": 96 * 1024     # 96GB free
+            },
+            "status": {
+                "cpu": 0.15,
+                "memory": {
+                    "total": 128 * 1024,
+                    "used": 32 * 1024
+                }
+            },
+            "storage_info": [
+                {
+                    "storage": "local-lvm",
+                    "type": "lvm",
+                    "total": 2000,
+                    "used": 800,
+                    "avail": 1200
+                },
+                {
+                    "storage": "ceph-pool",
+                    "type": "rbd",
+                    "total": 10000,
+                    "used": 3000,
+                    "avail": 7000
+                }
+            ],
+            "metrics": {
+                "cpu": {"usage": 0.15},
+                "memory": {"usage": 0.25},
+                "network": {"in": 100, "out": 50}
+            }
+        },
+        {
+            "node": "pve-2",
+            "status": "online",
+            "cpu": 0.45,  # 45% CPU usage
+            "maxcpu": 24,
+            "memory": {
+                "total": 64 * 1024,  # 64GB in MB
+                "used": 48 * 1024,   # 48GB used
+                "free": 16 * 1024    # 16GB free
+            },
+            "status": {
+                "cpu": 0.45,
+                "memory": {
+                    "total": 64 * 1024,
+                    "used": 48 * 1024
+                }
+            },
+            "storage_info": [
+                {
+                    "storage": "local-lvm",
+                    "type": "lvm",
+                    "total": 1000,
+                    "used": 800,
+                    "avail": 200
+                }
+            ],
+            "metrics": {
+                "cpu": {"usage": 0.45},
+                "memory": {"usage": 0.75},
+                "network": {"in": 200, "out": 150}
+            }
+        }
+    ],
+    "templates": [
+        {
+            "volid": "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz",
+            "type": "lxc",
+            "size": 250 * 1024 * 1024,  # 250MB
+            "format": "tar.gz"
+        },
+        {
+            "volid": "local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz",
+            "type": "lxc",
+            "size": 200 * 1024 * 1024,  # 200MB
+            "format": "tar.gz"
+        },
+        {
+            "volid": "ceph-pool:vm/template/ubuntu-22.04-cloud",
+            "type": "vm",
+            "size": 2.5 * 1024 * 1024 * 1024,  # 2.5GB
+            "format": "qcow2"
+        }
+    ],
+    "storages": [
+        {
+            "storage": "local-lvm",
+            "type": "lvm",
+            "content": ["images", "rootdir"],
+            "active": 1
+        },
+        {
+            "storage": "ceph-pool",
+            "type": "rbd",
+            "content": ["images", "rootdir"],
+            "active": 1
+        }
+    ],
+    "networks": [
+        {"iface": "eth0", "type": "bridge", "active": 1, "method": "static"},
+        {"iface": "vmbr0", "type": "bridge", "active": 1, "method": "static"}
+    ]
+}
 
 class Base(DeclarativeBase):
     pass
-
 
 db = SQLAlchemy(model_class=Base)
 # create the app
@@ -41,12 +158,54 @@ with app.app_context():
 
     db.create_all()
 
+    # Create test data in development mode
+    if DEV_MODE:
+        from models import User, ProxmoxNode
+
+        # Create test admin user if not exists
+        admin = User.query.filter_by(email='admin@example.com').first()
+        if not admin:
+            from werkzeug.security import generate_password_hash
+            admin = User(
+                username='admin',
+                email='admin@example.com',
+                password_hash=generate_password_hash('admin'),
+                is_admin=True
+            )
+            db.session.add(admin)
+
+            # Create test nodes
+            nodes = [
+                ProxmoxNode(
+                    name='Production Node 1',
+                    host='192.168.1.100',
+                    user='root@pam',
+                    password='mock-password',
+                    user_id=1,
+                    is_active=True,
+                    resources=MOCK_RESOURCES,
+                    created_at=datetime.utcnow()
+                ),
+                ProxmoxNode(
+                    name='Development Node',
+                    host='192.168.1.101',
+                    user='root@pam',
+                    password='mock-password',
+                    user_id=1,
+                    is_active=True,
+                    resources={
+                        **MOCK_RESOURCES,
+                        'nodes': [MOCK_RESOURCES['nodes'][1]]  # Use the more heavily loaded node
+                    },
+                    created_at=datetime.utcnow()
+                )
+            ]
+            db.session.add_all(nodes)
+            db.session.commit()
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-# Development mode when PROXMOX_HOST is not set
-DEV_MODE = not os.environ.get("PROXMOX_HOST")
 
 if DEV_MODE:
     logger.info("Running in development mode with mock data")
@@ -60,22 +219,6 @@ else:
         verify_ssl=False,
         timeout=15  # Increased timeout for LAN connections
     )
-
-# Mock data for development testing
-MOCK_RESOURCES = {
-    "nodes": [
-        {"node": "local", "status": "online", "cpu": 4, "maxmem": 16384}
-    ],
-    "templates": [
-        {"volid": "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz"},
-        {"volid": "local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz"},
-        {"volid": "local:vztmpl/alpine-3.17-default_20221129_amd64.tar.xz"}
-    ],
-    "networks": [
-        {"iface": "eth0", "type": "bridge", "active": 1},
-        {"iface": "vmbr0", "type": "bridge", "active": 1}
-    ]
-}
 
 # Register blueprints
 from routes.auth import auth as auth_blueprint
@@ -116,9 +259,24 @@ def deploy_container():
     try:
         if DEV_MODE:
             logger.info("Simulating deployment in development mode")
+            # Simulate a delay
+            import time
+            time.sleep(2)
             return jsonify({
+                "success": True,
                 "message": "Development mode: Deployment simulation successful",
-                "vmid": 100
+                "vmid": 100,
+                "node": "pve-1",
+                "status": {
+                    "name": request.json.get('name'),
+                    "type": request.json.get('type'),
+                    "cpu": request.json.get('cpu'),
+                    "memory": request.json.get('memory'),
+                    "storage": request.json.get('storage'),
+                    "ip_address": request.json.get('ip_address'),
+                    "tags": request.json.get('tags', []),
+                    "created_at": datetime.utcnow().isoformat()
+                }
             })
 
         data = request.json
