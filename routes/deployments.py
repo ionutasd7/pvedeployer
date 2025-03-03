@@ -39,23 +39,45 @@ def view_deployment(deployment_id):
 def create_deployment():
     # ... (Existing code for handling other form fields) ...
 
-    ip_address = request.form.get('ip_address')
-    bridge = request.form.get('bridge')
-
+    # Parse the DHCP setting first
+    use_dhcp = request.form.get('use_dhcp') == 'on'
+    
     # Build network configuration
-    network_config = None
-    if ip_address:
-        network_config = {
-            'ip': ip_address,
-            'bridge': bridge or 'vmbr0',
-            'gateway': request.form.get('gateway'),
-            'dns': request.form.get('dns'),
-            'firewall': request.form.get('enable_firewall') == 'on'
+    network_config = {
+        'dhcp': use_dhcp,
+        'bridge': request.form.get('bridge') or 'vmbr0'
+    }
+    
+    # Add static IP configuration if not using DHCP
+    if not use_dhcp:
+        ip_address = request.form.get('ip_address')
+        if ip_address:
+            network_config['ip'] = ip_address
+            network_config['gateway'] = request.form.get('gateway')
+            network_config['dns'] = request.form.get('dns')
+    
+    # Add firewall configuration if enabled
+    if request.form.get('enable_firewall') == 'on':
+        network_config['firewall'] = {
+            'enabled': True,
+            'ssh': request.form.get('fw_ssh') == 'on',
+            'http': request.form.get('fw_http') == 'on',
+            'icmp': request.form.get('fw_icmp') == 'on'
         }
-        
-        # Only include VLAN if enabled
-        if request.form.get('enable_vlan') == 'on' and request.form.get('vlan'):
-            network_config['vlan'] = request.form.get('vlan')
+    
+    # Add VLAN configuration if enabled
+    if request.form.get('enable_vlan') == 'on' and request.form.get('vlan'):
+        network_config['vlan'] = request.form.get('vlan')
+    
+    # Add bandwidth limits if specified
+    bandwidth_in = request.form.get('bandwidth_in')
+    bandwidth_out = request.form.get('bandwidth_out')
+    
+    if bandwidth_in and int(bandwidth_in) > 0:
+        network_config['bandwidth_in'] = int(bandwidth_in)
+    
+    if bandwidth_out and int(bandwidth_out) > 0:
+        network_config['bandwidth_out'] = int(bandwidth_out)
 
     # ... (rest of the create_deployment function) ...
     #This is placeholder,  the actual implementation to create the deployment would go here.  

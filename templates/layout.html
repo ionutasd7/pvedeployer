@@ -1,124 +1,235 @@
+
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proxmox Deployment Interface</title>
-    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
-<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <title>ProxDeployer - {% block title %}Home{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
     <style>
-        /* Modern, futuristic theme enhancements */
-        .theme-dark {
-            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-            color: #f8f9fa;
+        :root {
+            --primary-color: #5e72e4;
+            --secondary-color: #8392ab;
+            --success-color: #2dce89;
+            --info-color: #11cdef;
+            --warning-color: #fb6340;
+            --danger-color: #f5365c;
+            --light-color: #e9ecef;
+            --dark-color: #172b4d;
+            --sidebar-bg: #1a2035;
+            --sidebar-active: #0f1426;
+            --card-border: rgba(255, 255, 255, 0.05);
         }
 
-        .theme-light {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            color: #212529;
+        [data-bs-theme="dark"] {
+            --bs-primary: var(--primary-color);
+            --bs-secondary: var(--secondary-color);
+            --bs-success: var(--success-color);
+            --bs-info: var(--info-color);
+            --bs-warning: var(--warning-color);
+            --bs-danger: var(--danger-color);
+            --bs-light: var(--light-color);
+            --bs-dark: var(--dark-color);
+            --bs-body-bg: #121628;
+            --bs-body-color: #e9ecef;
+            --bs-card-bg: #1a2035;
+            --bs-card-border-color: var(--card-border);
+            --bs-border-color: var(--card-border);
         }
 
-        .theme-dark .navbar {
-            backdrop-filter: blur(10px);
-            background: rgba(33, 37, 41, 0.8) !important;
+        body {
+            min-height: 100vh;
         }
 
-        .theme-light .navbar {
-            backdrop-filter: blur(10px);
-            background: rgba(248, 249, 250, 0.8) !important;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        .sidebar {
+            background: var(--sidebar-bg);
+            min-height: 100vh;
+            position: fixed;
+            width: 250px;
+            z-index: 1000;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            padding-top: 1rem;
         }
 
-        .theme-dark .card {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(33, 37, 41, 0.8);
-            backdrop-filter: blur(10px);
+        .sidebar .nav-link {
+            border-radius: 8px;
+            margin: 6px 12px;
+            padding: 12px 15px;
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        .theme-light .card {
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.9);
         }
 
-        .theme-dark .form-control, .theme-dark .form-select {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background-color: rgba(33, 37, 41, 0.9) !important;
-            color: #f8f9fa !important;
+        .sidebar .nav-link.active {
+            background-color: var(--sidebar-active);
+            color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
-        .theme-light .form-control, .theme-light .form-select {
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            background-color: rgba(255, 255, 255, 0.9) !important;
-            color: #212529 !important;
+        .sidebar .nav-link svg {
+            margin-right: 0.5rem;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -250px;
+            }
+            .sidebar.show {
+                margin-left: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        .navbar {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            margin-left: 250px;
+            transition: margin-left 0.3s;
+            background-color: var(--sidebar-bg);
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                margin-left: 0;
+            }
+        }
+
+        #toggleSidebarBtn {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            #toggleSidebarBtn {
+                display: block;
+            }
+        }
+
+        .card {
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            border-bottom: 1px solid var(--card-border);
+            padding: 1rem 1.5rem;
+            background: linear-gradient(to right, rgba(30, 41, 59, 0.8), rgba(30, 41, 59, 0.6));
+        }
+
+        .btn {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s;
         }
 
         .btn-primary {
-            background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+            background: linear-gradient(to right, var(--primary-color), #4355b8);
             border: none;
-            position: relative;
-            overflow: hidden;
         }
 
-        .btn-primary::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.1);
-            transform: rotate(45deg);
+        .btn-success {
+            background: linear-gradient(to right, var(--success-color), #20bd79);
+            border: none;
+        }
+
+        .btn-info {
+            background: linear-gradient(to right, var(--info-color), #0fb5db);
+            border: none;
+        }
+
+        .btn-warning {
+            background: linear-gradient(to right, var(--warning-color), #f8592c);
+            border: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(to right, var(--danger-color), #e92048);
+            border: none;
+        }
+
+        .btn-outline-primary, .btn-outline-success, .btn-outline-info, 
+        .btn-outline-warning, .btn-outline-danger {
+            background: transparent;
             transition: all 0.3s;
-            opacity: 0;
         }
 
-        .btn-primary:hover::after {
-            opacity: 1;
+        .btn-outline-primary:hover {
+            background: linear-gradient(to right, var(--primary-color), #4355b8);
+            border-color: transparent;
         }
 
-        .nav-link {
+        .form-control, .form-select {
+            background-color: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: var(--bs-body-color);
+            padding: 0.6rem 1rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: rgba(30, 41, 59, 0.7);
+            box-shadow: 0 0 0 0.25rem rgba(94, 114, 228, 0.25);
+        }
+
+        .form-check-input {
+            background-color: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .badge {
+            padding: 0.5em 0.8em;
+            border-radius: 6px;
+        }
+
+        .custom-switch {
             position: relative;
-            overflow: hidden;
-        }
-
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: #0dcaf0;
-            transition: width 0.3s;
-        }
-
-        .nav-link:hover::after {
-            width: 100%;
-        }
-
-        /* Theme toggle switch */
-        .theme-switch-wrapper {
-            display: flex;
-            align-items: center;
-        }
-
-        .theme-switch {
             display: inline-block;
-            position: relative;
-            width: 50px;
+            width: 48px;
             height: 24px;
         }
 
-        .theme-switch input {
+        .custom-switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
 
-        .slider {
+        .custom-switch .slider {
             position: absolute;
             cursor: pointer;
             top: 0;
@@ -130,7 +241,7 @@
             border-radius: 24px;
         }
 
-        .slider:before {
+        .custom-switch .slider:before {
             position: absolute;
             content: "";
             height: 16px;
@@ -142,131 +253,253 @@
             border-radius: 50%;
         }
 
-        input:checked + .slider {
-            background-color: #0dcaf0;
+        .custom-switch input:checked + .slider {
+            background-color: var(--primary-color);
         }
 
-        input:focus + .slider {
-            box-shadow: 0 0 1px #0dcaf0;
+        .custom-switch input:focus + .slider {
+            box-shadow: 0 0 1px var(--primary-color);
         }
 
-        input:checked + .slider:before {
-            transform: translateX(26px);
+        .custom-switch input:checked + .slider:before {
+            transform: translateX(24px);
         }
-
-        /* Resource usage gauges */
-        .gauge-container {
-            width: 100%;
-            height: 12px;
-            background-color: rgba(200, 200, 200, 0.2);
-            border-radius: 6px;
-            overflow: hidden;
-            margin-top: 5px;
-        }
-
-        .gauge-fill {
-            height: 100%;
-            border-radius: 6px;
-            transition: width 0.5s ease-in-out;
-        }
-
-        .gauge-low { background-color: #0dcaf0; }
-        .gauge-medium { background-color: #ffc107; }
-        .gauge-high { background-color: #dc3545; }
     </style>
+    {% block head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <i data-feather="server"></i>
-                Proxmox Deployer
-            </a>
-            {% if current_user.is_authenticated %}
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">
-                            <i data-feather="home"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('nodes.list_nodes') }}">
-                            <i data-feather="hard-drive"></i> Nodes
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('templates.list_templates') }}">
-                            <i data-feather="box"></i> Templates
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('deployments.list_deployments') }}">
-                            <i data-feather="play"></i> Deployments
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('monitoring') }}">
-                            <i data-feather="activity"></i> Monitoring
-                        </a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item me-3">
-                        <div class="theme-switch-wrapper d-flex align-items-center">
-                            <i data-feather="sun" class="me-1" style="width: 16px; height: 16px;"></i>
-                            <label class="theme-switch mx-1">
-                                <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
-                                <span class="slider"></span>
-                            </label>
-                            <i data-feather="moon" class="ms-1" style="width: 16px; height: 16px;"></i>
-                        </div>
-                    </li>
-                    <li class="nav-item">
-                        <span class="nav-link">
-                            <i data-feather="user"></i> {{ current_user.username }}
-                        </span>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('auth.logout') }}">
-                            <i data-feather="log-out"></i> Logout
-                        </a>
-                    </li>
-                </ul>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="px-3 mb-4">
+            <h3 class="d-flex align-items-center">
+                <i class="bi bi-hdd-rack-fill me-2 text-primary"></i>
+                <span>ProxDeployer</span>
+            </h3>
+        </div>
+        <div class="px-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-white">Admin</div>
+                        <small class="text-muted">Administrator</small>
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <i class="bi bi-gear" style="cursor: pointer;" data-bs-toggle="dropdown"></i>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> Profile</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/logout"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+                    </ul>
+                </div>
             </div>
-            {% endif %}
-            {% if not config.get('PROXMOX_HOST') %}
-            <span class="badge bg-warning">Development Mode</span>
-            {% endif %}
+        </div>
+        <hr class="mx-3 my-2 bg-secondary">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/nodes' in request.path %}active{% endif %}" href="/nodes">
+                    <i class="bi bi-hdd-network"></i> Proxmox Nodes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/templates' in request.path %}active{% endif %}" href="/templates">
+                    <i class="bi bi-card-list"></i> Templates
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/deployments' in request.path and not '/new' in request.path %}active{% endif %}" href="/deployments">
+                    <i class="bi bi-play-circle"></i> Deployments
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/deployments/new' in request.path %}active{% endif %}" href="/deployments/new">
+                    <i class="bi bi-plus-circle"></i> New Deployment
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/scripts' in request.path %}active{% endif %}" href="/scripts">
+                    <i class="bi bi-code-slash"></i> Scripts
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/monitoring' in request.path %}active{% endif %}" href="/monitoring">
+                    <i class="bi bi-graph-up"></i> Monitoring
+                </a>
+            </li>
+        </ul>
+        
+        <hr class="mx-3 my-2 bg-secondary">
+        
+        <div class="px-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">ENVIRONMENT</small>
+            </div>
+        </div>
+        
+        <div class="px-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">Dark Mode</span>
+                <label class="custom-switch">
+                    <input type="checkbox" id="themeToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">Notifications</span>
+                <label class="custom-switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted">Auto Refresh</span>
+                <label class="custom-switch">
+                    <input type="checkbox" id="autoRefreshToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container-fluid">
+            <button class="btn" id="toggleSidebarBtn">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="d-flex ms-auto">
+                <div class="dropdown me-3">
+                    <button class="btn position-relative" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            2
+                        </span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end" style="width: 300px;">
+                        <div class="p-3">
+                            <h6 class="border-bottom pb-2 mb-3">Notifications</h6>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary rounded p-2 me-3">
+                                    <i class="bi bi-check2-circle text-white"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0">Deployment completed successfully</p>
+                                    <small class="text-muted">5 minutes ago</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-warning rounded p-2 me-3">
+                                    <i class="bi bi-exclamation-triangle text-white"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0">Node cpu-01 running at high load</p>
+                                    <small class="text-muted">20 minutes ago</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <button class="btn" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-gear"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> Profile</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/logout"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        {% if not config.get('PROXMOX_HOST') and current_user.is_authenticated %}
-        <div class="alert alert-warning bg-gradient" role="alert">
-            <h4 class="alert-heading"><i data-feather="info"></i> Development Mode Active</h4>
-            <p>Running with mock data. To connect to a real Proxmox server, set these environment variables:</p>
-            <ul>
-                <li><code>PROXMOX_HOST</code>: Your Proxmox server IP or hostname</li>
-                <li><code>PROXMOX_USER</code>: Proxmox username (e.g., root@pam)</li>
-                <li><code>PROXMOX_PASSWORD</code>: Proxmox password or API token</li>
-            </ul>
-        </div>
-        {% endif %}
-
+    <!-- Main Content -->
+    <div class="main-content">
         {% block content %}{% endblock %}
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/network.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize feather icons
             feather.replace();
+            
+            // Toggle sidebar on mobile
+            const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const navbar = document.querySelector('.navbar');
+            
+            if (toggleSidebarBtn) {
+                toggleSidebarBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+            }
+
+            // Theme toggler
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('change', function() {
+                    document.documentElement.setAttribute('data-bs-theme', 
+                        this.checked ? 'dark' : 'light');
+                });
+            }
+
+            // Initialize Notyf
+            window.notyf = new Notyf({
+                duration: 5000,
+                position: {
+                    x: 'right',
+                    y: 'top',
+                },
+                types: [
+                    {
+                        type: 'success',
+                        background: 'var(--success-color)',
+                        icon: {
+                            className: 'bi bi-check-circle',
+                            tagName: 'i'
+                        }
+                    },
+                    {
+                        type: 'error',
+                        background: 'var(--danger-color)',
+                        icon: {
+                            className: 'bi bi-x-circle',
+                            tagName: 'i'
+                        }
+                    },
+                    {
+                        type: 'warning',
+                        background: 'var(--warning-color)',
+                        icon: {
+                            className: 'bi bi-exclamation-circle',
+                            tagName: 'i'
+                        }
+                    },
+                    {
+                        type: 'info',
+                        background: 'var(--info-color)',
+                        icon: {
+                            className: 'bi bi-info-circle',
+                            tagName: 'i'
+                        }
+                    }
+                ]
+            });
         });
     </script>
     {% block scripts %}{% endblock %}

@@ -1,91 +1,250 @@
 
 {% extends "layout.html" %}
+{% block title %}Deployments{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i data-feather="play"></i> Deployments</h2>
-        <a href="{{ url_for('deployments.new_deployment') }}" class="btn btn-primary">
-            <i data-feather="plus"></i> New Deployment
-        </a>
+        <h2>
+            <i class="bi bi-play-circle me-2"></i> Deployments
+        </h2>
+        <div>
+            <a href="{{ url_for('deployments.new_deployment') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i> New Deployment
+            </a>
+        </div>
     </div>
 
-    <div class="card border-0 shadow-lg mb-4">
-        <div class="card-header bg-primary bg-gradient text-white">
-            <h4 class="mb-0">Active Deployments</h4>
-        </div>
-        <div class="card-body">
-            {% if deployments %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Node</th>
-                            <th>Resources</th>
-                            <th>Status</th>
-                            <th>Created</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for deployment in deployments %}
-                        <tr>
-                            <td>{{ deployment.name }}</td>
-                            <td>
-                                {% if deployment.type == 'lxc' %}
-                                <span class="badge bg-info">LXC</span>
-                                {% else %}
-                                <span class="badge bg-primary">VM</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ deployment.node_name }}</td>
-                            <td>
-                                <small>
-                                    <i data-feather="cpu" style="width: 14px;"></i> {{ deployment.cpu }} vCPUs |
-                                    <i data-feather="database" style="width: 14px;"></i> {{ deployment.memory }} MB RAM |
-                                    <i data-feather="hard-drive" style="width: 14px;"></i> {{ deployment.storage }} GB
-                                </small>
-                            </td>
-                            <td>
-                                {% if deployment.status == 'running' %}
-                                <span class="badge bg-success">Running</span>
-                                {% elif deployment.status == 'stopped' %}
-                                <span class="badge bg-danger">Stopped</span>
-                                {% else %}
-                                <span class="badge bg-warning">{{ deployment.status }}</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ deployment.created_at.strftime('%Y-%m-%d') }}</td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="{{ url_for('deployments.view_deployment', deployment_id=deployment.id) }}" class="btn btn-sm btn-outline-primary">
-                                        <i data-feather="eye" style="width: 14px;"></i>
-                                    </a>
-                                    <button class="btn btn-sm btn-outline-success">
-                                        <i data-feather="play" style="width: 14px;"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <i data-feather="power" style="width: 14px;"></i>
-                                    </button>
+    <div class="mb-4">
+        <div class="card border-0 shadow-lg">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="deploymentViewTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="grid-tab" data-bs-toggle="tab" data-bs-target="#grid-view" type="button" role="tab">
+                            <i class="bi bi-grid-3x3-gap me-1"></i> Grid View
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="list-tab" data-bs-toggle="tab" data-bs-target="#list-view" type="button" role="tab">
+                            <i class="bi bi-list-ul me-1"></i> List View
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body p-0">
+                <div class="tab-content" id="myTabContent">
+                    <!-- Grid View -->
+                    <div class="tab-pane fade show active p-3" id="grid-view" role="tabpanel" aria-labelledby="grid-tab">
+                        {% if deployments %}
+                        <div class="row g-4">
+                            {% for deployment in deployments %}
+                            <div class="col-lg-4 col-md-6">
+                                <div class="card h-100 position-relative">
+                                    {% if deployment.status == 'running' %}
+                                    <div class="position-absolute top-0 end-0 mt-2 me-2">
+                                        <span class="badge bg-success">Running</span>
+                                    </div>
+                                    {% elif deployment.status == 'stopped' %}
+                                    <div class="position-absolute top-0 end-0 mt-2 me-2">
+                                        <span class="badge bg-danger">Stopped</span>
+                                    </div>
+                                    {% elif deployment.status == 'creating' %}
+                                    <div class="position-absolute top-0 end-0 mt-2 me-2">
+                                        <span class="badge bg-warning">Creating</span>
+                                    </div>
+                                    {% else %}
+                                    <div class="position-absolute top-0 end-0 mt-2 me-2">
+                                        <span class="badge bg-secondary">{{ deployment.status }}</span>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="card-body">
+                                        <div class="text-center mb-3">
+                                            {% if 'lxc' in deployment.vm_type %}
+                                            <i class="bi bi-box" style="font-size: 48px;"></i>
+                                            {% else %}
+                                            <i class="bi bi-pc-display" style="font-size: 48px;"></i>
+                                            {% endif %}
+                                        </div>
+                                        <h5 class="card-title text-center mb-3">{{ deployment.name }}</h5>
+                                        
+                                        <div class="deployment-specs small mb-3">
+                                            <div class="row text-muted mb-2">
+                                                <div class="col">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="bi bi-cpu me-2"></i>
+                                                        <span>{{ deployment.cpu }} cores</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="bi bi-memory me-2"></i>
+                                                        <span>{{ deployment.memory }} MB</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="bi bi-hdd me-2"></i>
+                                                        <span>{{ deployment.storage }} GB</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="d-flex align-items-center text-muted mb-2">
+                                                <i class="bi bi-globe me-2"></i>
+                                                <span>{{ deployment.ip_address or 'DHCP' }}</span>
+                                            </div>
+                                            
+                                            <div class="d-flex justify-content-between align-items-center text-muted">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="bi bi-hdd-rack me-2"></i>
+                                                    <span>{{ deployment.node.name if deployment.node else 'Unknown' }}</span>
+                                                </div>
+                                                <div>
+                                                    {% if 'lxc' in deployment.vm_type %}
+                                                    <span class="badge bg-info">LXC</span>
+                                                    {% else %}
+                                                    <span class="badge bg-primary">VM</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-transparent d-flex justify-content-between">
+                                        <div class="btn-group" role="group">
+                                            {% if deployment.status == 'running' %}
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-deployment-id="{{ deployment.id }}" data-action="stop">
+                                                <i class="bi bi-stop-fill"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-warning" data-deployment-id="{{ deployment.id }}" data-action="restart">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                            </button>
+                                            {% elif deployment.status == 'stopped' %}
+                                            <button type="button" class="btn btn-sm btn-outline-success" data-deployment-id="{{ deployment.id }}" data-action="start">
+                                                <i class="bi bi-play-fill"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                        <a href="{{ url_for('deployments.view_deployment', deployment_id=deployment.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                    </div>
                                 </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="bi bi-play-circle" style="font-size: 64px; opacity: 0.5;"></i>
+                            </div>
+                            <h4>No deployments yet</h4>
+                            <p class="text-muted">Create your first deployment to get started</p>
+                            <a href="{{ url_for('deployments.new_deployment') }}" class="btn btn-lg btn-primary mt-3">
+                                <i class="bi bi-plus-lg me-1"></i> Create First Deployment
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- List View -->
+                    <div class="tab-pane fade" id="list-view" role="tabpanel" aria-labelledby="list-tab">
+                        {% if deployments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>IP Address</th>
+                                        <th>Resources</th>
+                                        <th>Node</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for deployment in deployments %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if 'lxc' in deployment.vm_type %}
+                                                <i class="bi bi-box me-2"></i>
+                                                {% else %}
+                                                <i class="bi bi-pc-display me-2"></i>
+                                                {% endif %}
+                                                <a href="{{ url_for('deployments.view_deployment', deployment_id=deployment.id) }}">{{ deployment.name }}</a>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if 'lxc' in deployment.vm_type %}
+                                            <span class="badge bg-info">LXC</span>
+                                            {% else %}
+                                            <span class="badge bg-primary">VM</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ deployment.ip_address or 'DHCP' }}</td>
+                                        <td>
+                                            <small>
+                                                <i class="bi bi-cpu me-1"></i> {{ deployment.cpu }} cores |
+                                                <i class="bi bi-memory me-1"></i> {{ deployment.memory }} MB |
+                                                <i class="bi bi-hdd me-1"></i> {{ deployment.storage }} GB
+                                            </small>
+                                        </td>
+                                        <td>{{ deployment.node.name if deployment.node else 'Unknown' }}</td>
+                                        <td>
+                                            {% if deployment.status == 'running' %}
+                                            <span class="badge bg-success">Running</span>
+                                            {% elif deployment.status == 'stopped' %}
+                                            <span class="badge bg-danger">Stopped</span>
+                                            {% elif deployment.status == 'creating' %}
+                                            <span class="badge bg-warning">Creating</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">{{ deployment.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                {% if deployment.status == 'running' %}
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-deployment-id="{{ deployment.id }}" data-action="stop" title="Stop">
+                                                    <i class="bi bi-stop-fill"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-warning" data-deployment-id="{{ deployment.id }}" data-action="restart" title="Restart">
+                                                    <i class="bi bi-arrow-repeat"></i>
+                                                </button>
+                                                {% elif deployment.status == 'stopped' %}
+                                                <button type="button" class="btn btn-sm btn-outline-success" data-deployment-id="{{ deployment.id }}" data-action="start" title="Start">
+                                                    <i class="bi bi-play-fill"></i>
+                                                </button>
+                                                {% endif %}
+                                                <a href="{{ url_for('deployments.view_deployment', deployment_id=deployment.id) }}" class="btn btn-sm btn-outline-primary" title="View">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" data-deployment-id="{{ deployment.id }}" data-action="delete" title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="bi bi-play-circle" style="font-size: 64px; opacity: 0.5;"></i>
+                            </div>
+                            <h4>No deployments yet</h4>
+                            <p class="text-muted">Create your first deployment to get started</p>
+                            <a href="{{ url_for('deployments.new_deployment') }}" class="btn btn-lg btn-primary mt-3">
+                                <i class="bi bi-plus-lg me-1"></i> Create First Deployment
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            {% else %}
-            <div class="alert alert-info">
-                <i data-feather="info"></i> No active deployments. Create your first deployment to get started.
-            </div>
-            <div class="text-center mt-4">
-                <a href="{{ url_for('deployments.new_deployment') }}" class="btn btn-lg btn-outline-primary">
-                    <i data-feather="play"></i> Create First Deployment
-                </a>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>
@@ -94,8 +253,84 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Feather icons
-    feather.replace();
+    // Initialize Bootstrap tabs
+    const tabsElement = document.getElementById('deploymentViewTabs');
+    if (tabsElement) {
+        const tabs = new bootstrap.Tab(tabsElement);
+    }
+    
+    // Handle deployment actions (start, stop, restart, delete)
+    const actionButtons = document.querySelectorAll('[data-action]');
+    actionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const deploymentId = this.getAttribute('data-deployment-id');
+            const action = this.getAttribute('data-action');
+            const deploymentName = this.closest('.card')?.querySelector('.card-title')?.textContent || 
+                                   this.closest('tr')?.querySelector('td:first-child a')?.textContent || 
+                                   'this deployment';
+            
+            // Confirmation for destructive actions
+            if (action === 'delete' && !confirm(`Are you sure you want to delete ${deploymentName}? This action cannot be undone.`)) {
+                return;
+            }
+            
+            // Show loading notification
+            const loadingNotification = window.notyf.open({
+                type: 'info',
+                message: `${action.charAt(0).toUpperCase() + action.slice(1)}ing ${deploymentName}...`,
+                duration: false
+            });
+            
+            // Send AJAX request
+            fetch(`/deployments/${deploymentId}/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                window.notyf.dismiss(loadingNotification);
+                
+                if (response.ok) {
+                    window.notyf.success(`Successfully ${action}ed ${deploymentName}`);
+                    
+                    // Reload the page after a short delay
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    response.json().then(data => {
+                        window.notyf.error(data.message || `Failed to ${action} ${deploymentName}`);
+                    }).catch(() => {
+                        window.notyf.error(`Failed to ${action} ${deploymentName}`);
+                    });
+                }
+            })
+            .catch(error => {
+                window.notyf.dismiss(loadingNotification);
+                window.notyf.error(`Error: ${error.message}`);
+            });
+        });
+    });
+    
+    // Save current tab preference
+    const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+    tabButtons.forEach(button => {
+        button.addEventListener('shown.bs.tab', function(event) {
+            localStorage.setItem('deploymentViewPreference', event.target.id);
+        });
+    });
+    
+    // Restore tab preference
+    const savedTab = localStorage.getItem('deploymentViewPreference');
+    if (savedTab) {
+        const tabToShow = document.getElementById(savedTab);
+        if (tabToShow) {
+            const tab = new bootstrap.Tab(tabToShow);
+            tab.show();
+        }
+    }
 });
 </script>
 {% endblock %}

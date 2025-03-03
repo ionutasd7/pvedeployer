@@ -1,137 +1,246 @@
+
 {% extends "layout.html" %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
 <div class="container">
-    <!-- Resource Summary Cards -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+        </h2>
+        <div>
+            <button class="btn btn-outline-primary" id="refreshStats">
+                <i class="bi bi-arrow-repeat me-1"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
     <div class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-lg-3 col-md-6 mb-4">
             <div class="card border-0 shadow-lg h-100">
                 <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <i data-feather="cpu" class="text-primary" style="width: 32px; height: 32px;"></i>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Deployments</h6>
+                            <h3 class="mb-0" id="totalDeployments">--</h3>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-0">Total vCPU</h6>
-                            <h3 class="mb-0">{{ resource_summary.vcpu_total }} Cores</h3>
-                            <small class="text-muted">{{ resource_summary.vcpu_used }} cores in use</small>
-
-                            {% set vcpu_percent = (resource_summary.vcpu_used / resource_summary.vcpu_total * 100) | int %}
-                            <div class="gauge-container mt-2">
-                                <div class="gauge-fill 
-                                    {% if vcpu_percent < 50 %}gauge-low
-                                    {% elif vcpu_percent < 80 %}gauge-medium
-                                    {% else %}gauge-high{% endif %}" 
-                                    style="width: {{ vcpu_percent }}%">
-                                </div>
-                            </div>
-                            <small class="text-muted">{{ vcpu_percent }}% utilization</small>
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-2">
+                            <i class="bi bi-play-circle text-primary" style="font-size: 1.5rem;"></i>
                         </div>
+                    </div>
+                    <div class="mt-3">
+                        <span class="badge bg-success" id="activeDeployments">
+                            <i class="bi bi-check-circle me-1"></i> -- Active
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+
+        <div class="col-lg-3 col-md-6 mb-4">
             <div class="card border-0 shadow-lg h-100">
                 <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <i data-feather="database" class="text-info" style="width: 32px; height: 32px;"></i>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="text-muted mb-1">Proxmox Nodes</h6>
+                            <h3 class="mb-0" id="totalNodes">--</h3>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-0">Total RAM</h6>
-                            <h3 class="mb-0">{{ resource_summary.ram_total }}GB</h3>
-                            <small class="text-muted">{{ resource_summary.ram_used }}GB in use</small>
-
-                            {% set ram_percent = (resource_summary.ram_used / resource_summary.ram_total * 100) | int %}
-                            <div class="gauge-container mt-2">
-                                <div class="gauge-fill 
-                                    {% if ram_percent < 50 %}gauge-low
-                                    {% elif ram_percent < 80 %}gauge-medium
-                                    {% else %}gauge-high{% endif %}" 
-                                    style="width: {{ ram_percent }}%">
-                                </div>
-                            </div>
-                            <small class="text-muted">{{ ram_percent }}% utilization</small>
+                        <div class="rounded-circle bg-success bg-opacity-10 p-2">
+                            <i class="bi bi-hdd-rack text-success" style="font-size: 1.5rem;"></i>
                         </div>
+                    </div>
+                    <div class="mt-3">
+                        <span class="badge bg-primary" id="totalCores">
+                            <i class="bi bi-cpu me-1"></i> -- Cores
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+
+        <div class="col-lg-3 col-md-6 mb-4">
             <div class="card border-0 shadow-lg h-100">
                 <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-shrink-0">
-                            <i data-feather="hard-drive" class="text-success" style="width: 32px; height: 32px;"></i>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="text-muted mb-1">Templates</h6>
+                            <h3 class="mb-0" id="totalTemplates">--</h3>
                         </div>
-                        <div class="flex-grow-1 ms-3">
-                            <h6 class="text-muted mb-0">Total Storage</h6>
-                            <h3 class="mb-0">{{ resource_summary.storage_total }}TB</h3>
-                            <small class="text-muted">{{ resource_summary.storage_used }}TB in use</small>
+                        <div class="rounded-circle bg-info bg-opacity-10 p-2">
+                            <i class="bi bi-card-list text-info" style="font-size: 1.5rem;"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <span class="badge bg-info" id="vmTemplates">
+                            <i class="bi bi-pc-display me-1"></i> -- VM
+                        </span>
+                        <span class="badge bg-secondary" id="lxcTemplates">
+                            <i class="bi bi-box me-1"></i> -- LXC
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                            {% set storage_percent = (resource_summary.storage_used / resource_summary.storage_total * 100) | int %}
-                            <div class="gauge-container mt-2">
-                                <div class="gauge-fill 
-                                    {% if storage_percent < 50 %}gauge-low
-                                    {% elif storage_percent < 80 %}gauge-medium
-                                    {% else %}gauge-high{% endif %}" 
-                                    style="width: {{ storage_percent }}%">
-                                </div>
-                            </div>
-                            <small class="text-muted">{{ storage_percent }}% utilization</small>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="text-muted mb-1">Scripts</h6>
+                            <h3 class="mb-0" id="totalScripts">--</h3>
                         </div>
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-2">
+                            <i class="bi bi-code-slash text-warning" style="font-size: 1.5rem;"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <span class="badge bg-warning text-dark" id="scriptRuns">
+                            <i class="bi bi-play me-1"></i> -- Executions
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Resource Usage Charts -->
     <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-lg h-100">
-                <div class="card-header bg-transparent border-0">
-                    <h5 class="card-title mb-0">CPU Usage</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="cpuUsageChart" height="300"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card border-0 shadow-lg h-100">
-                <div class="card-header bg-transparent border-0">
-                    <h5 class="card-title mb-0">Memory Usage</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="memoryUsageChart" height="300"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions Panel -->
-    <div class="row mb-4">
-        <div class="col-12">
+        <!-- CPU and Memory Usage Chart -->
+        <div class="col-lg-8 mb-4">
             <div class="card border-0 shadow-lg">
-                <div class="card-header bg-transparent border-0">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Resource Usage</h5>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary active" data-period="day">Day</button>
+                        <button type="button" class="btn btn-outline-secondary" data-period="week">Week</button>
+                        <button type="button" class="btn btn-outline-secondary" data-period="month">Month</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="resourceChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Node Status -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Node Status</h5>
+                    <a href="/nodes" class="text-decoration-none">
+                        <i class="bi bi-arrow-right-circle"></i>
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="nodeStatusList">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="placeholder-glow w-100">
+                                <span class="placeholder col-6"></span>
+                                <span class="placeholder col-4"></span>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="placeholder-glow w-100">
+                                <span class="placeholder col-6"></span>
+                                <span class="placeholder col-4"></span>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="placeholder-glow w-100">
+                                <span class="placeholder col-6"></span>
+                                <span class="placeholder col-4"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Deployments -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Deployments</h5>
+                    <a href="/deployments" class="text-decoration-none">
+                        <i class="bi bi-arrow-right-circle"></i>
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="recentDeploymentsList">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="placeholder-glow w-100">
+                                <span class="placeholder col-6"></span>
+                                <span class="placeholder col-4"></span>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="placeholder-glow w-100">
+                                <span class="placeholder col-6"></span>
+                                <span class="placeholder col-4"></span>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="placeholder-glow w-100">
+                                <span class="placeholder col-6"></span>
+                                <span class="placeholder col-4"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header">
                     <h5 class="card-title mb-0">Quick Actions</h5>
                 </div>
                 <div class="card-body">
-                    <div class="d-flex justify-content-around flex-wrap">
-                        <a href="{{ url_for('deployments.new_deployment') }}" class="btn btn-primary m-2">
-                            <i data-feather="play" class="me-1"></i> New Deployment
-                        </a>
-                        <a href="{{ url_for('templates.list_templates') }}" class="btn btn-info m-2">
-                            <i data-feather="box" class="me-1"></i> Browse Templates
-                        </a>
-                        <a href="{{ url_for('nodes.list_nodes') }}" class="btn btn-success m-2">
-                            <i data-feather="hard-drive" class="me-1"></i> Manage Nodes
-                        </a>
-                        <a href="{{ url_for('scripts.list_scripts') }}" class="btn btn-warning m-2">
-                            <i data-feather="terminal" class="me-1"></i> Automation Scripts
-                        </a>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <a href="/deployments/new" class="card h-100 text-decoration-none">
+                                <div class="card-body text-center">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 p-3 mx-auto mb-3" style="width: 64px;">
+                                        <i class="bi bi-plus-circle text-primary" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                    <h6 class="mb-0">New Deployment</h6>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="/nodes/add" class="card h-100 text-decoration-none">
+                                <div class="card-body text-center">
+                                    <div class="rounded-circle bg-success bg-opacity-10 p-3 mx-auto mb-3" style="width: 64px;">
+                                        <i class="bi bi-hdd-network text-success" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                    <h6 class="mb-0">Add Node</h6>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="/templates" class="card h-100 text-decoration-none">
+                                <div class="card-body text-center">
+                                    <div class="rounded-circle bg-info bg-opacity-10 p-3 mx-auto mb-3" style="width: 64px;">
+                                        <i class="bi bi-card-list text-info" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                    <h6 class="mb-0">Manage Templates</h6>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="/scripts" class="card h-100 text-decoration-none">
+                                <div class="card-body text-center">
+                                    <div class="rounded-circle bg-warning bg-opacity-10 p-3 mx-auto mb-3" style="width: 64px;">
+                                        <i class="bi bi-code-slash text-warning" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                    <h6 class="mb-0">Manage Scripts</h6>
+                                </div>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -141,6 +250,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

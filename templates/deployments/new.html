@@ -1,15 +1,16 @@
 
 {% extends "layout.html" %}
+{% block title %}New Deployment{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>
-            <i data-feather="play" class="me-2"></i> New Deployment
+            <i class="bi bi-play-circle me-2"></i> New Deployment
         </h2>
         <div>
             <a href="{{ url_for('deployments.list_deployments') }}" class="btn btn-outline-secondary">
-                <i data-feather="arrow-left"></i> Back to Deployments
+                <i class="bi bi-arrow-left me-1"></i> Back to Deployments
             </a>
         </div>
     </div>
@@ -17,238 +18,409 @@
     <div class="row">
         <div class="col-lg-8">
             <div class="card border-0 shadow-lg mb-4">
-                <div class="card-header bg-transparent">
-                    <h5 class="card-title mb-0">Deployment Configuration</h5>
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="deploymentTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">
+                                <i class="bi bi-info-circle me-1"></i> Basic
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="resources-tab" data-bs-toggle="tab" data-bs-target="#resources" type="button" role="tab">
+                                <i class="bi bi-cpu me-1"></i> Resources
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="network-tab" data-bs-toggle="tab" data-bs-target="#network" type="button" role="tab">
+                                <i class="bi bi-hdd-network me-1"></i> Network
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced" type="button" role="tab">
+                                <i class="bi bi-gear me-1"></i> Advanced
+                            </button>
+                        </li>
+                    </ul>
                 </div>
                 <div class="card-body">
                     <form id="deploymentForm" action="#" method="POST">
-                        <div class="mb-4">
-                            <h6 class="mb-3">1. Deployment Type</h6>
-                            <div class="d-flex">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="deploymentType" id="typeVM" value="vm" checked>
-                                    <label class="form-check-label" for="typeVM">
-                                        <i data-feather="monitor" class="me-1"></i> Virtual Machine
-                                    </label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="deploymentType" id="typeLXC" value="lxc">
-                                    <label class="form-check-label" for="typeLXC">
-                                        <i data-feather="package" class="me-1"></i> LXC Container
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <h6 class="mb-3">2. Basic Information</h6>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="deploymentName" class="form-label">Name</label>
-                                    <input type="text" class="form-control" id="deploymentName" name="name" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="deploymentTemplate" class="form-label">Template</label>
-                                    <select class="form-select" id="deploymentTemplate" name="template" required>
-                                        <option value="" selected disabled>Select a template</option>
-                                        <option value="local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz">Ubuntu 22.04 LXC</option>
-                                        <option value="local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz">Debian 11 LXC</option>
-                                        <option value="ceph-pool:vm/template/ubuntu-22.04-cloud">Ubuntu 22.04 VM</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <h6 class="mb-3">3. Resources</h6>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label for="deploymentCPU" class="form-label">CPU Cores</label>
-                                    <div class="input-group">
-                                        <input type="number" class="form-control" id="deploymentCPU" name="cpu" min="1" value="2" required>
-                                        <span class="input-group-text">cores</span>
+                        <div class="tab-content" id="deploymentTabsContent">
+                            <!-- Basic Information Tab -->
+                            <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                                <div class="mb-4">
+                                    <h6 class="mb-3 text-primary">Deployment Type</h6>
+                                    <div class="d-flex">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="deploymentType" id="typeVM" value="vm" checked>
+                                            <label class="form-check-label" for="typeVM">
+                                                <i class="bi bi-pc-display me-1"></i> Virtual Machine
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="deploymentType" id="typeLXC" value="lxc">
+                                            <label class="form-check-label" for="typeLXC">
+                                                <i class="bi bi-box me-1"></i> LXC Container
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <label for="deploymentMemory" class="form-label">Memory</label>
-                                    <div class="input-group">
-                                        <input type="number" class="form-control" id="deploymentMemory" name="memory" min="512" value="2048" required>
-                                        <span class="input-group-text">MB</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="deploymentStorage" class="form-label">Storage</label>
-                                    <div class="input-group">
-                                        <input type="number" class="form-control" id="deploymentStorage" name="storage" min="5" value="20" required>
-                                        <span class="input-group-text">GB</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="mb-4" id="networkSection">
-                            <h6 class="mb-3">4. Network</h6>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="deploymentIP" class="form-label">IP Address (optional)</label>
-                                    <input type="text" class="form-control" id="deploymentIP" name="ip_address" placeholder="192.168.1.100">
-                                    <div class="form-text">Leave blank for DHCP</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="deploymentBridge" class="form-label">Network Bridge</label>
-                                    <select class="form-select" id="deploymentBridge" name="bridge">
-                                        <option value="vmbr0" selected>vmbr0 (Default)</option>
-                                        <option value="vmbr1">vmbr1 (Internal)</option>
-                                        <option value="vmbr2">vmbr2 (DMZ)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="deploymentGateway" class="form-label">Gateway</label>
-                                    <input type="text" class="form-control" id="deploymentGateway" name="gateway" placeholder="192.168.1.1">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="deploymentDNS" class="form-label">DNS Servers</label>
-                                    <input type="text" class="form-control" id="deploymentDNS" name="dns" placeholder="8.8.8.8,1.1.1.1">
-                                    <div class="form-text">Comma-separated list of DNS servers</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="deploymentBridge" class="form-label">Network Bridge</label>
-                                    <select class="form-select" id="deploymentBridge" name="bridge">
-                                        <option value="vmbr0" selected>vmbr0 (Default)</option>
-                                        <option value="vmbr1">vmbr1</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="deploymentVLAN" class="form-label">VLAN Tag (optional)</label>
-                                    <input type="number" class="form-control" id="deploymentVLAN" name="vlan" placeholder="10">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Firewall</label>
-                                    <div class="col-12">
-                                    <div class="card border-0 shadow-sm p-3 mb-3">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-check form-switch mb-3">
-                                                    <input class="form-check-input" type="checkbox" id="enableVLAN" name="enable_vlan">
-                                                    <label class="form-check-label" for="enableVLAN">
-                                                        Enable VLAN tagging
-                                                    </label>
-                                                </div>
-                                                <div class="mb-3" style="display:none">
-                                                    <label for="deploymentVLAN" class="form-label">VLAN Tag</label>
-                                                    <input type="number" class="form-control" id="deploymentVLAN" name="vlan" placeholder="10" min="1" max="4094">
-                                                </div>
+                                <div class="mb-4">
+                                    <h6 class="mb-3 text-primary">Basic Information</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="deploymentName" class="form-label">Name</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                                                <input type="text" class="form-control" id="deploymentName" name="name" required>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input" type="checkbox" id="enableFirewall" name="enable_firewall">
-                                                    <label class="form-check-label" for="enableFirewall">
-                                                        Enable firewall for this deployment
-                                                    </label>
-                                                </div>
-                                                <div class="form-text">
-
-                            <div class="mb-3">
-                                <h6>Network Configuration</h6>
-                                <table class="table table-sm">
-                                    <tbody>
-                                        <tr>
-                                            <td><strong>IP Address:</strong></td>
-                                            <td id="previewIP">DHCP</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Gateway:</strong></td>
-                                            <td id="previewGateway">---</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>DNS:</strong></td>
-                                            <td id="previewDNS">---</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Bridge:</strong></td>
-                                            <td id="previewBridge">vmbr0</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>VLAN:</strong></td>
-                                            <td id="previewVLAN">None</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Firewall:</strong></td>
-                                            <td id="previewFirewall">Disabled</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                                                    Applies default firewall policies to protect this deployment.
-                                                </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="deploymentNode" class="form-label">Target Node</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-hdd-rack"></i></span>
+                                                <select class="form-select" id="deploymentNode" name="node" required>
+                                                    <option value="" selected disabled>Select a node</option>
+                                                    {% for node in nodes %}
+                                                    <option value="{{ node.id }}">{{ node.name }} ({{ node.address }})</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="deploymentDescription" class="form-label">Description</label>
+                                            <textarea class="form-control" id="deploymentDescription" name="description" rows="2"></textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="deploymentTemplate" class="form-label">Template</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-file-earmark-code"></i></span>
+                                                <select class="form-select" id="deploymentTemplate" name="template" required>
+                                                    <option value="" selected disabled>Select a template</option>
+                                                    <option value="local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz">Ubuntu 22.04 LXC</option>
+                                                    <option value="local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz">Debian 11 LXC</option>
+                                                    <option value="ceph-pool:vm/template/ubuntu-22.04-cloud">Ubuntu 22.04 VM</option>
+                                                    <option value="ceph-pool:vm/template/debian-11-cloud">Debian 11 VM</option>
+                                                    <option value="ceph-pool:vm/template/rocky-9-cloud">Rocky Linux 9 VM</option>
+                                                    <option value="ceph-pool:vm/template/windows-2022-server">Windows Server 2022</option>
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <h6 class="mb-3">5. Node Selection</h6>
-                            <div class="row g-3 align-items-end">
-                                <div class="col-md-6">
-                                    <div class="form-check mb-3">
-                                        <input class="form-check-input" type="checkbox" id="autoSelectNode" name="auto_select_node" checked>
-                                        <label class="form-check-label" for="autoSelectNode">
-                                            Automatically select best node
-                                        </label>
+                            
+                            <!-- Resources Tab -->
+                            <div class="tab-pane fade" id="resources" role="tabpanel" aria-labelledby="resources-tab">
+                                <div class="mb-4">
+                                    <h6 class="mb-3 text-primary">Resource Configuration</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label for="deploymentCPU" class="form-label">CPU Cores</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-cpu"></i></span>
+                                                <input type="number" class="form-control" id="deploymentCPU" name="cpu" min="1" value="2" required>
+                                                <span class="input-group-text">cores</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="deploymentMemory" class="form-label">Memory</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-memory"></i></span>
+                                                <input type="number" class="form-control" id="deploymentMemory" name="memory" min="512" value="2048" required>
+                                                <span class="input-group-text">MB</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="deploymentStorage" class="form-label">Storage</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-hdd"></i></span>
+                                                <input type="number" class="form-control" id="deploymentStorage" name="storage" min="5" value="20" required>
+                                                <span class="input-group-text">GB</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <select class="form-select" id="deploymentNode" name="node" disabled>
-                                        {% for node in nodes %}
-                                        <option value="{{ node.id }}">{{ node.name }}</option>
-                                        {% endfor %}
-                                    </select>
+                                    
+                                    <div class="mt-4">
+                                        <h6 class="mb-3 text-primary">Resource Limits</h6>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="cpuLimit" class="form-label">CPU Limit</label>
+                                                <div class="input-group">
+                                                    <input type="range" class="form-range" id="cpuLimit" name="cpu_limit" min="0" max="100" value="0">
+                                                    <span class="ms-2" id="cpuLimitValue">Unlimited</span>
+                                                </div>
+                                                <small class="form-text">CPU limit in % (0 = unlimited)</small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="ioLimit" class="form-label">IO Limit</label>
+                                                <div class="input-group">
+                                                    <input type="range" class="form-range" id="ioLimit" name="io_limit" min="0" max="1000" value="0">
+                                                    <span class="ms-2" id="ioLimitValue">Unlimited</span>
+                                                </div>
+                                                <small class="form-text">IO limit in MB/s (0 = unlimited)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <h6 class="mb-3 text-primary">Resource Priority</h6>
+                                        <div class="row g-3">
+                                            <div class="col-md-12">
+                                                <label for="prioritySlider" class="form-label">Resource Priority</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-arrow-down"></i> Low</span>
+                                                    <input type="range" class="form-range mx-2" id="prioritySlider" name="priority" min="1" max="5" value="3">
+                                                    <span class="input-group-text">High <i class="bi bi-arrow-up"></i></span>
+                                                </div>
+                                                <small class="form-text text-center d-block mt-2">Current: <span id="priorityValue">Medium (3)</span></small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <button type="button" id="recommendNodeBtn" class="btn btn-outline-primary">
-                                        <i data-feather="cpu"></i> Recommend Best Node
-                                    </button>
+                            </div>
+                            
+                            <!-- Network Tab -->
+                            <div class="tab-pane fade" id="network" role="tabpanel" aria-labelledby="network-tab">
+                                <div class="mb-4">
+                                    <h6 class="mb-3 text-primary">Network Configuration</h6>
+                                    
+                                    <div class="d-flex align-items-center mb-3">
+                                        <label class="custom-switch me-3">
+                                            <input type="checkbox" id="dhcpToggle" name="use_dhcp" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <label for="dhcpToggle" class="mb-0">Use DHCP</label>
+                                    </div>
+                                    
+                                    <div id="staticIpConfig">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="deploymentIP" class="form-label">IP Address</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                                                    <input type="text" class="form-control" id="deploymentIP" name="ip_address" placeholder="192.168.1.100/24">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="deploymentGateway" class="form-label">Gateway</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-signpost"></i></span>
+                                                    <input type="text" class="form-control" id="deploymentGateway" name="gateway" placeholder="192.168.1.1">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="deploymentDNS" class="form-label">DNS Servers</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                                    <input type="text" class="form-control" id="deploymentDNS" name="dns" placeholder="8.8.8.8,1.1.1.1">
+                                                </div>
+                                                <div class="form-text">Comma-separated list of DNS servers</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="deploymentBridge" class="form-label">Network Bridge</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-hdd-network"></i></span>
+                                                    <select class="form-select" id="deploymentBridge" name="bridge">
+                                                        <option value="vmbr0" selected>vmbr0 (Default)</option>
+                                                        <option value="vmbr1">vmbr1</option>
+                                                        <option value="vmbr2">vmbr2</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="mb-3 text-primary">Advanced Network Options</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <label class="custom-switch me-3">
+                                                    <input type="checkbox" id="enableVLAN" name="enable_vlan">
+                                                    <span class="slider"></span>
+                                                </label>
+                                                <label for="enableVLAN" class="mb-0">Enable VLAN Tagging</label>
+                                            </div>
+                                            <div id="vlanConfig" class="d-none">
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-layers"></i></span>
+                                                    <input type="number" class="form-control" id="deploymentVLAN" name="vlan" placeholder="VLAN ID" min="1" max="4094">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <label class="custom-switch me-3">
+                                                    <input type="checkbox" id="enableFirewall" name="enable_firewall">
+                                                    <span class="slider"></span>
+                                                </label>
+                                                <label for="enableFirewall" class="mb-0">Enable Firewall</label>
+                                            </div>
+                                            <div id="firewallConfig" class="d-none">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="firewallSSH" name="fw_ssh" checked>
+                                                    <label class="form-check-label" for="firewallSSH">
+                                                        Allow SSH (Port 22)
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="firewallHTTP" name="fw_http" checked>
+                                                    <label class="form-check-label" for="firewallHTTP">
+                                                        Allow HTTP/HTTPS (Ports 80, 443)
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="firewallICMP" name="fw_icmp" checked>
+                                                    <label class="form-check-label" for="firewallICMP">
+                                                        Allow ICMP (Ping)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="mb-3 text-primary">Network Bandwidth</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="bandwidthIn" class="form-label">Incoming Bandwidth Limit</label>
+                                            <div class="input-group">
+                                                <input type="range" class="form-range" id="bandwidthIn" name="bandwidth_in" min="0" max="1000" value="0">
+                                                <span class="ms-2" id="bandwidthInValue">Unlimited</span>
+                                            </div>
+                                            <small class="form-text">Incoming bandwidth limit in Mbps (0 = unlimited)</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="bandwidthOut" class="form-label">Outgoing Bandwidth Limit</label>
+                                            <div class="input-group">
+                                                <input type="range" class="form-range" id="bandwidthOut" name="bandwidth_out" min="0" max="1000" value="0">
+                                                <span class="ms-2" id="bandwidthOutValue">Unlimited</span>
+                                            </div>
+                                            <small class="form-text">Outgoing bandwidth limit in Mbps (0 = unlimited)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Advanced Tab -->
+                            <div class="tab-pane fade" id="advanced" role="tabpanel" aria-labelledby="advanced-tab">
+                                <div class="mb-4">
+                                    <h6 class="mb-3 text-primary">Advanced Options</h6>
+                                    
+                                    <div class="d-flex align-items-center mb-3">
+                                        <label class="custom-switch me-3">
+                                            <input type="checkbox" id="enableHA" name="enable_ha">
+                                            <span class="slider"></span>
+                                        </label>
+                                        <label for="enableHA" class="mb-0">Enable High Availability</label>
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-center mb-3">
+                                        <label class="custom-switch me-3">
+                                            <input type="checkbox" id="startOnBoot" name="start_on_boot" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <label for="startOnBoot" class="mb-0">Start on Boot</label>
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-center mb-3">
+                                        <label class="custom-switch me-3">
+                                            <input type="checkbox" id="enableBackup" name="enable_backup">
+                                            <span class="slider"></span>
+                                        </label>
+                                        <label for="enableBackup" class="mb-0">Include in Backups</label>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="backupSchedule" class="form-label">Backup Schedule</label>
+                                        <select class="form-select" id="backupSchedule" name="backup_schedule" disabled>
+                                            <option value="daily">Daily</option>
+                                            <option value="weekly" selected>Weekly</option>
+                                            <option value="monthly">Monthly</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="mb-3 text-primary">Post-Install Scripts</h6>
+                                    
+                                    <div class="d-flex align-items-center mb-3">
+                                        <label class="custom-switch me-3">
+                                            <input type="checkbox" id="enablePostInstall" name="enable_post_install">
+                                            <span class="slider"></span>
+                                        </label>
+                                        <label for="enablePostInstall" class="mb-0">Run Post-Install Script</label>
+                                    </div>
+                                    
+                                    <div id="postInstallOptions" class="d-none">
+                                        <div class="mb-3">
+                                            <label for="postInstallScript" class="form-label">Select Script</label>
+                                            <select class="form-select" id="postInstallScript" name="post_install_script">
+                                                <option value="install_docker">Install Docker</option>
+                                                <option value="install_wordpress">Install WordPress</option>
+                                                <option value="install_lamp">Install LAMP Stack</option>
+                                                <option value="install_monitoring">Install Monitoring Agent</option>
+                                                <option value="custom">Custom Script</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div id="customScriptOptions" class="d-none mb-3">
+                                            <label for="customScript" class="form-label">Custom Script</label>
+                                            <textarea class="form-control" id="customScript" name="custom_script" rows="5" placeholder="#!/bin/bash
+# Your script here"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="mb-3 text-primary">SSH Keys</h6>
+                                    
+                                    <div class="d-flex align-items-center mb-3">
+                                        <label class="custom-switch me-3">
+                                            <input type="checkbox" id="enableSSHKey" name="enable_ssh_key">
+                                            <span class="slider"></span>
+                                        </label>
+                                        <label for="enableSSHKey" class="mb-0">Add SSH Key</label>
+                                    </div>
+                                    
+                                    <div id="sshKeyOptions" class="d-none">
+                                        <div class="mb-3">
+                                            <label for="sshKey" class="form-label">SSH Public Key</label>
+                                            <textarea class="form-control" id="sshKey" name="ssh_key" rows="3" placeholder="ssh-rsa AAAAB3NzaC1yc2E..."></textarea>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="mb-4">
-                            <h6 class="mb-3">6. Post-Deployment Scripts</h6>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="installSSHKeys" name="install_ssh_keys">
-                                <label class="form-check-label" for="installSSHKeys">
-                                    Install SSH Keys
-                                </label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="installMonitoring" name="install_monitoring">
-                                <label class="form-check-label" for="installMonitoring">
-                                    Install Monitoring Agent
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="reset" class="btn btn-outline-secondary me-md-2">Reset</button>
-                            <button type="submit" class="btn btn-primary">
-                                <i data-feather="play" class="me-1"></i> Deploy
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" id="prevBtn" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Previous
+                            </button>
+                            <button type="button" id="nextBtn" class="btn btn-primary">
+                                Next <i class="bi bi-arrow-right ms-1"></i>
+                            </button>
+                            <button type="submit" id="deployBtn" class="btn btn-success d-none">
+                                <i class="bi bi-play-fill me-1"></i> Deploy
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-
+        
         <div class="col-lg-4">
             <div class="card border-0 shadow-lg mb-4 sticky-top" style="top: 80px; z-index: 100;">
-                <div class="card-header bg-transparent">
+                <div class="card-header">
                     <h5 class="card-title mb-0">Deployment Preview</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-3 text-center">
                         <div id="previewIcon" class="mb-2">
-                            <i data-feather="monitor" style="width: 48px; height: 48px;"></i>
+                            <i class="bi bi-pc-display" style="font-size: 48px;"></i>
                         </div>
                         <h4 id="previewName">New Deployment</h4>
                         <span class="badge bg-primary mb-3" id="previewType">Virtual Machine</span>
@@ -257,52 +429,42 @@
                     <div class="mb-3">
                         <h6 class="text-muted">Resources</h6>
                         <div class="d-flex justify-content-between">
-                            <span>CPU:</span>
+                            <span><i class="bi bi-cpu me-2"></i> CPU:</span>
                             <span id="previewCPU">2 cores</span>
                         </div>
                         <div class="d-flex justify-content-between">
-                            <span>Memory:</span>
+                            <span><i class="bi bi-memory me-2"></i> Memory:</span>
                             <span id="previewMemory">2048 MB</span>
                         </div>
                         <div class="d-flex justify-content-between">
-                            <span>Storage:</span>
+                            <span><i class="bi bi-hdd me-2"></i> Storage:</span>
                             <span id="previewStorage">20 GB</span>
                         </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3" id="networkPreview">
                         <h6 class="text-muted">Network</h6>
                         <div class="d-flex justify-content-between">
-                            <span>IP:</span>
-                            <span id="previewIP">DHCP</span>
+                            <span><i class="bi bi-hdd-network me-2"></i> Network:</span>
+                            <span id="previewNetwork">DHCP</span>
                         </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Gateway:</span>
-                            <span id="previewGateway">192.168.1.1</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>DNS:</span>
-                            <span id="previewDNS">8.8.8.8, 1.1.1.1</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Bridge:</span>
-                            <span id="previewBridge">vmbr0</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>VLAN Tag:</span>
-                            <span id="previewVLAN">None</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Firewall:</span>
-                            <span id="previewFirewall">Disabled</span>
+                        <div class="d-flex justify-content-between" id="ipPreviewRow">
+                            <span><i class="bi bi-globe me-2"></i> IP:</span>
+                            <span id="previewIP">Automatic</span>
                         </div>
                     </div>
 
-                    <div>
-                        <h6 class="text-muted">Node</h6>
-                        <div class="d-flex justify-content-between">
-                            <span>Selected:</span>
-                            <span id="previewNode">Auto-select</span>
+                    <div class="mb-3">
+                        <h6 class="text-muted">Configuration</h6>
+                        <div id="previewFeatures">
+                            <span class="badge bg-secondary mb-1 me-1">Default Settings</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-dark rounded p-3 mb-2" id="estimatedCostSection">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Estimated Cost:</span>
+                            <span class="text-success fw-bold" id="estimatedCost">$10/month</span>
                         </div>
                     </div>
                 </div>
@@ -315,137 +477,307 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Feather icons
-    feather.replace();
+    // Initialize tabs navigation
+    const tabsElement = document.getElementById('deploymentTabs');
+    const tabs = new bootstrap.Tab(tabsElement);
     
-    // Form preview functionality
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const deployBtn = document.getElementById('deployBtn');
+    
+    const tabList = ['basic-tab', 'resources-tab', 'network-tab', 'advanced-tab'];
+    let currentTabIndex = 0;
+    
+    // Update buttons state
+    function updateButtons() {
+        prevBtn.disabled = currentTabIndex === 0;
+        nextBtn.classList.toggle('d-none', currentTabIndex === tabList.length - 1);
+        deployBtn.classList.toggle('d-none', currentTabIndex !== tabList.length - 1);
+    }
+    
+    // Navigate to previous tab
+    prevBtn.addEventListener('click', function() {
+        if (currentTabIndex > 0) {
+            currentTabIndex--;
+            document.getElementById(tabList[currentTabIndex]).click();
+            updateButtons();
+        }
+    });
+    
+    // Navigate to next tab
+    nextBtn.addEventListener('click', function() {
+        if (currentTabIndex < tabList.length - 1) {
+            currentTabIndex++;
+            document.getElementById(tabList[currentTabIndex]).click();
+            updateButtons();
+        }
+    });
+    
+    // Update buttons when tabs are changed
+    tabsElement.addEventListener('shown.bs.tab', function(event) {
+        currentTabIndex = tabList.indexOf(event.target.id);
+        updateButtons();
+    });
+    
+    updateButtons();
+    
+    // Form elements
     const deploymentForm = document.getElementById('deploymentForm');
-    const nameInput = document.getElementById('deploymentName');
-    const cpuInput = document.getElementById('deploymentCPU');
-    const memoryInput = document.getElementById('deploymentMemory');
-    const storageInput = document.getElementById('deploymentStorage');
-    const ipInput = document.getElementById('deploymentIP');
-    const bridgeSelect = document.getElementById('deploymentBridge');
-    const typeVMRadio = document.getElementById('typeVM');
-    const typeLXCRadio = document.getElementById('typeLXC');
-    const nodeSelect = document.getElementById('deploymentNode');
-    const autoSelectNode = document.getElementById('autoSelectNode');
+    const deploymentType = document.querySelectorAll('input[name="deploymentType"]');
+    const deploymentName = document.getElementById('deploymentName');
+    const deploymentCPU = document.getElementById('deploymentCPU');
+    const deploymentMemory = document.getElementById('deploymentMemory');
+    const deploymentStorage = document.getElementById('deploymentStorage');
+    const dhcpToggle = document.getElementById('dhcpToggle');
+    const staticIpConfig = document.getElementById('staticIpConfig');
+    const deploymentIP = document.getElementById('deploymentIP');
+    const deploymentGateway = document.getElementById('deploymentGateway');
+    const deploymentDNS = document.getElementById('deploymentDNS');
+    const deploymentBridge = document.getElementById('deploymentBridge');
+    const enableVLAN = document.getElementById('enableVLAN');
+    const vlanConfig = document.getElementById('vlanConfig');
+    const deploymentVLAN = document.getElementById('deploymentVLAN');
+    const enableFirewall = document.getElementById('enableFirewall');
+    const firewallConfig = document.getElementById('firewallConfig');
+    const enableHA = document.getElementById('enableHA');
+    const startOnBoot = document.getElementById('startOnBoot');
+    const enableBackup = document.getElementById('enableBackup');
+    const backupSchedule = document.getElementById('backupSchedule');
+    const enablePostInstall = document.getElementById('enablePostInstall');
+    const postInstallOptions = document.getElementById('postInstallOptions');
+    const postInstallScript = document.getElementById('postInstallScript');
+    const customScriptOptions = document.getElementById('customScriptOptions');
+    const enableSSHKey = document.getElementById('enableSSHKey');
+    const sshKeyOptions = document.getElementById('sshKeyOptions');
     
     // Preview elements
+    const previewIcon = document.getElementById('previewIcon');
     const previewName = document.getElementById('previewName');
     const previewType = document.getElementById('previewType');
-    const previewIcon = document.getElementById('previewIcon');
     const previewCPU = document.getElementById('previewCPU');
     const previewMemory = document.getElementById('previewMemory');
     const previewStorage = document.getElementById('previewStorage');
+    const previewNetwork = document.getElementById('previewNetwork');
+    const ipPreviewRow = document.getElementById('ipPreviewRow');
     const previewIP = document.getElementById('previewIP');
-    const previewBridge = document.getElementById('previewBridge');
-    const previewNode = document.getElementById('previewNode');
+    const previewFeatures = document.getElementById('previewFeatures');
+    const estimatedCost = document.getElementById('estimatedCost');
     
-    // Update preview on input changes
-    nameInput.addEventListener('input', updatePreview);
-    cpuInput.addEventListener('input', updatePreview);
-    memoryInput.addEventListener('input', updatePreview);
-    storageInput.addEventListener('input', updatePreview);
-    ipInput.addEventListener('input', updatePreview);
-    bridgeSelect.addEventListener('change', updatePreview);
-    typeVMRadio.addEventListener('change', updatePreview);
-    typeLXCRadio.addEventListener('change', updatePreview);
-    nodeSelect.addEventListener('change', updatePreview);
-    autoSelectNode.addEventListener('change', function() {
-        nodeSelect.disabled = this.checked;
+    // Range sliders
+    const cpuLimit = document.getElementById('cpuLimit');
+    const cpuLimitValue = document.getElementById('cpuLimitValue');
+    const ioLimit = document.getElementById('ioLimit');
+    const ioLimitValue = document.getElementById('ioLimitValue');
+    const prioritySlider = document.getElementById('prioritySlider');
+    const priorityValue = document.getElementById('priorityValue');
+    const bandwidthIn = document.getElementById('bandwidthIn');
+    const bandwidthInValue = document.getElementById('bandwidthInValue');
+    const bandwidthOut = document.getElementById('bandwidthOut');
+    const bandwidthOutValue = document.getElementById('bandwidthOutValue');
+    
+    // Update range slider values
+    cpuLimit.addEventListener('input', function() {
+        cpuLimitValue.textContent = this.value > 0 ? `${this.value}%` : 'Unlimited';
         updatePreview();
     });
     
+    ioLimit.addEventListener('input', function() {
+        ioLimitValue.textContent = this.value > 0 ? `${this.value} MB/s` : 'Unlimited';
+        updatePreview();
+    });
+    
+    prioritySlider.addEventListener('input', function() {
+        const priorityLabels = ['Very Low (1)', 'Low (2)', 'Medium (3)', 'High (4)', 'Very High (5)'];
+        priorityValue.textContent = priorityLabels[this.value - 1];
+        updatePreview();
+    });
+    
+    bandwidthIn.addEventListener('input', function() {
+        bandwidthInValue.textContent = this.value > 0 ? `${this.value} Mbps` : 'Unlimited';
+        updatePreview();
+    });
+    
+    bandwidthOut.addEventListener('input', function() {
+        bandwidthOutValue.textContent = this.value > 0 ? `${this.value} Mbps` : 'Unlimited';
+        updatePreview();
+    });
+    
+    // Toggle handlers
+    dhcpToggle.addEventListener('change', function() {
+        staticIpConfig.style.display = this.checked ? 'none' : 'block';
+        updatePreview();
+    });
+    
+    enableVLAN.addEventListener('change', function() {
+        vlanConfig.classList.toggle('d-none', !this.checked);
+        updatePreview();
+    });
+    
+    enableFirewall.addEventListener('change', function() {
+        firewallConfig.classList.toggle('d-none', !this.checked);
+        updatePreview();
+    });
+    
+    enableBackup.addEventListener('change', function() {
+        backupSchedule.disabled = !this.checked;
+        updatePreview();
+    });
+    
+    enablePostInstall.addEventListener('change', function() {
+        postInstallOptions.classList.toggle('d-none', !this.checked);
+        updatePreview();
+    });
+    
+    postInstallScript.addEventListener('change', function() {
+        customScriptOptions.classList.toggle('d-none', this.value !== 'custom');
+        updatePreview();
+    });
+    
+    enableSSHKey.addEventListener('change', function() {
+        sshKeyOptions.classList.toggle('d-none', !this.checked);
+        updatePreview();
+    });
+    
+    // Update preview when form values change
     function updatePreview() {
-        // Update name
-        previewName.textContent = nameInput.value || 'New Deployment';
+        // Update deployment type icon and text
+        const isVM = document.getElementById('typeVM').checked;
+        previewIcon.innerHTML = isVM ? 
+            '<i class="bi bi-pc-display" style="font-size: 48px;"></i>' : 
+            '<i class="bi bi-box" style="font-size: 48px;"></i>';
+        previewType.textContent = isVM ? 'Virtual Machine' : 'LXC Container';
         
-        // Update type
-        if (typeVMRadio.checked) {
-            previewType.textContent = 'Virtual Machine';
-            previewType.className = 'badge bg-primary mb-3';
-            previewIcon.innerHTML = '<i data-feather="monitor" style="width: 48px; height: 48px;"></i>';
+        // Update deployment name
+        if (deploymentName.value) {
+            previewName.textContent = deploymentName.value;
         } else {
-            previewType.textContent = 'LXC Container';
-            previewType.className = 'badge bg-success mb-3';
-            previewIcon.innerHTML = '<i data-feather="package" style="width: 48px; height: 48px;"></i>';
+            previewName.textContent = 'New Deployment';
         }
-        feather.replace();
         
         // Update resources
-        previewCPU.textContent = `${cpuInput.value} cores`;
-        previewMemory.textContent = `${memoryInput.value} MB`;
-        previewStorage.textContent = `${storageInput.value} GB`;
+        previewCPU.textContent = `${deploymentCPU.value} cores`;
+        previewMemory.textContent = `${deploymentMemory.value} MB`;
+        previewStorage.textContent = `${deploymentStorage.value} GB`;
         
-        // Update network preview is now handled by network.js
-        
-        // Update node
-        if (autoSelectNode.checked) {
-            previewNode.textContent = 'Auto-select';
+        // Update network
+        if (dhcpToggle.checked) {
+            previewNetwork.textContent = 'DHCP';
+            ipPreviewRow.style.display = 'none';
         } else {
-            const selectedNode = nodeSelect.options[nodeSelect.selectedIndex];
-            previewNode.textContent = selectedNode ? selectedNode.text : 'None';
+            previewNetwork.textContent = `Static (${deploymentBridge.value})`;
+            ipPreviewRow.style.display = 'flex';
+            previewIP.textContent = deploymentIP.value || 'Not specified';
         }
+        
+        // Update features badges
+        let features = [];
+        
+        if (enableVLAN.checked && deploymentVLAN.value) {
+            features.push(`<span class="badge bg-info mb-1 me-1">VLAN ${deploymentVLAN.value}</span>`);
+        }
+        
+        if (enableFirewall.checked) {
+            features.push(`<span class="badge bg-warning mb-1 me-1">Firewall</span>`);
+        }
+        
+        if (enableHA.checked) {
+            features.push(`<span class="badge bg-success mb-1 me-1">HA</span>`);
+        }
+        
+        if (enableBackup.checked) {
+            features.push(`<span class="badge bg-primary mb-1 me-1">${backupSchedule.value.charAt(0).toUpperCase() + backupSchedule.value.slice(1)} Backup</span>`);
+        }
+        
+        if (enablePostInstall.checked) {
+            features.push(`<span class="badge bg-secondary mb-1 me-1">Post-Install Script</span>`);
+        }
+        
+        if (enableSSHKey.checked) {
+            features.push(`<span class="badge bg-dark mb-1 me-1">SSH Key</span>`);
+        }
+        
+        if (bandwidthIn.value > 0 || bandwidthOut.value > 0) {
+            features.push(`<span class="badge bg-danger mb-1 me-1">Bandwidth Limit</span>`);
+        }
+        
+        if (features.length > 0) {
+            previewFeatures.innerHTML = features.join('');
+        } else {
+            previewFeatures.innerHTML = '<span class="badge bg-secondary mb-1 me-1">Default Settings</span>';
+        }
+        
+        // Calculate estimated cost
+        const cpuCost = deploymentCPU.value * 2;
+        const memoryCost = (deploymentMemory.value / 1024) * 4;
+        const storageCost = deploymentStorage.value * 0.1;
+        const totalCost = cpuCost + memoryCost + storageCost;
+        
+        estimatedCost.textContent = `$${totalCost.toFixed(2)}/month`;
     }
     
-    // Handle form submission
+    // Initialize preview on page load
+    updatePreview();
+    
+    // Add event listeners to form elements for preview updates
+    deploymentType.forEach(type => {
+        type.addEventListener('change', updatePreview);
+    });
+    
+    deploymentName.addEventListener('input', updatePreview);
+    deploymentCPU.addEventListener('input', updatePreview);
+    deploymentMemory.addEventListener('input', updatePreview);
+    deploymentStorage.addEventListener('input', updatePreview);
+    deploymentIP.addEventListener('input', updatePreview);
+    deploymentBridge.addEventListener('change', updatePreview);
+    deploymentVLAN.addEventListener('input', updatePreview);
+    
+    // Form submission
     deploymentForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Show loading overlay
+        // Create loading overlay
         const loadingOverlay = document.createElement('div');
-        loadingOverlay.className = 'position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center';
+        loadingOverlay.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center';
+        loadingOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
         loadingOverlay.style.zIndex = '9999';
         loadingOverlay.innerHTML = `
             <div class="text-center text-white">
                 <div class="spinner-border mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
                 <h5>Creating Deployment...</h5>
-                <p>This may take a minute or two.</p>
+                <p>This may take a few minutes</p>
             </div>
         `;
         document.body.appendChild(loadingOverlay);
         
-        // Get form data
-        const formData = {
-            type: typeVMRadio.checked ? 'vm' : 'lxc',
-            name: nameInput.value,
-            template: document.getElementById('deploymentTemplate').value,
-            cpu: parseInt(cpuInput.value),
-            memory: parseInt(memoryInput.value),
-            storage: parseInt(storageInput.value),
-            ip_address: ipInput.value || null,
-            bridge: bridgeSelect.value,
-            node: autoSelectNode.checked ? 'auto' : nodeSelect.value,
-            install_ssh_keys: document.getElementById('installSSHKeys').checked,
-            install_monitoring: document.getElementById('installMonitoring').checked
-        };
+        // Create form data
+        const formData = new FormData(deploymentForm);
         
-        // Send deployment request
-        fetch('/api/deploy', {
+        // Send AJAX request
+        fetch('/deployments/create', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData),
+            body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-            // Remove loading overlay
+        .then(response => {
+            // For demo purposes, simulate a delay
+            return new Promise(resolve => setTimeout(() => resolve(response), 2000));
+        })
+        .then(response => {
             document.body.removeChild(loadingOverlay);
             
-            if (data.error) {
-                alert(`Deployment failed: ${data.details || data.error}`);
-            } else {
-                // Show success message
+            if (response.ok) {
+                // Show success notification
+                window.notyf.success('Deployment created successfully!');
+                
+                // Show success overlay
                 const successOverlay = document.createElement('div');
-                successOverlay.className = 'position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center';
+                successOverlay.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center';
+                successOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
                 successOverlay.style.zIndex = '9999';
                 successOverlay.innerHTML = `
                     <div class="card border-0 p-4 shadow-lg">
                         <div class="text-center mb-4">
                             <div class="bg-success text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
-                                <i data-feather="check" style="width: 32px; height: 32px;"></i>
+                                <i class="bi bi-check-lg" style="font-size: 32px;"></i>
                             </div>
                             <h4>Deployment Successful!</h4>
                             <p class="text-muted">Your deployment is now being created.</p>
@@ -457,17 +789,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
                 document.body.appendChild(successOverlay);
-                feather.replace();
+            } else {
+                // Show error notification
+                window.notyf.error('Error creating deployment. Please try again.');
             }
         })
         .catch(error => {
             document.body.removeChild(loadingOverlay);
-            alert(`Error: ${error.message}`);
+            window.notyf.error(`Error: ${error.message}`);
         });
     });
-    
-    // Initialize preview
-    updatePreview();
 });
 </script>
 {% endblock %}
