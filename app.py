@@ -253,6 +253,11 @@ def get_resources():
             "details": error_msg
         }), 500
 
+@app.route('/monitoring')
+@login_required
+def monitoring():
+    return render_template('monitoring.html')
+
 @app.route('/api/deploy', methods=['POST'])
 @login_required
 def deploy_container():

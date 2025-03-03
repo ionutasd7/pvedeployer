@@ -1,0 +1,376 @@
+
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">
+        <i data-feather="activity" class="me-2"></i>
+        Health Monitoring Dashboard
+    </h2>
+
+    <!-- System Status Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-body">
+                    <h5 class="text-primary">
+                        <i data-feather="server" class="me-2"></i>
+                        Nodes Status
+                    </h5>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <h2 class="mb-0" id="healthyNodes">3/3</h2>
+                        <span class="badge bg-success">Healthy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-body">
+                    <h5 class="text-primary">
+                        <i data-feather="monitor" class="me-2"></i>
+                        VMs Status
+                    </h5>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <h2 class="mb-0" id="healthyVMs">12/14</h2>
+                        <span class="badge bg-warning">Issues</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-body">
+                    <h5 class="text-primary">
+                        <i data-feather="box" class="me-2"></i>
+                        Containers Status
+                    </h5>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <h2 class="mb-0" id="healthyContainers">8/8</h2>
+                        <span class="badge bg-success">Healthy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-body">
+                    <h5 class="text-primary">
+                        <i data-feather="hard-drive" class="me-2"></i>
+                        Storage Status
+                    </h5>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <h2 class="mb-0" id="healthyStorage">5/5</h2>
+                        <span class="badge bg-success">Healthy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resource Usage Graphs -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body">
+                    <h5 class="text-primary">CPU Usage Over Time</h5>
+                    <canvas id="cpuChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg">
+                <div class="card-body">
+                    <h5 class="text-primary">Memory Usage Over Time</h5>
+                    <canvas id="memoryChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VM and Container Status Table -->
+    <div class="card border-0 shadow-lg mb-4">
+        <div class="card-header bg-primary bg-gradient text-white">
+            <h4 class="mb-0">Virtual Machines & Containers</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Node</th>
+                            <th>Status</th>
+                            <th>CPU</th>
+                            <th>Memory</th>
+                            <th>Uptime</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vmsTable">
+                        <tr>
+                            <td>100</td>
+                            <td>web-server</td>
+                            <td>VM</td>
+                            <td>pve1</td>
+                            <td><span class="badge bg-success">Running</span></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">24%</span>
+                                    <div class="gauge-container">
+                                        <div class="gauge-fill gauge-low" style="width: 24%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">68%</span>
+                                    <div class="gauge-container">
+                                        <div class="gauge-fill gauge-medium" style="width: 68%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>3d 5h</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-primary"><i data-feather="refresh-cw" style="width: 14px;"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i data-feather="power" style="width: 14px;"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>101</td>
+                            <td>db-server</td>
+                            <td>VM</td>
+                            <td>pve2</td>
+                            <td><span class="badge bg-success">Running</span></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">42%</span>
+                                    <div class="gauge-container">
+                                        <div class="gauge-fill gauge-medium" style="width: 42%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">89%</span>
+                                    <div class="gauge-container">
+                                        <div class="gauge-fill gauge-high" style="width: 89%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>12d 8h</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-primary"><i data-feather="refresh-cw" style="width: 14px;"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i data-feather="power" style="width: 14px;"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>102</td>
+                            <td>app-server</td>
+                            <td>LXC</td>
+                            <td>pve1</td>
+                            <td><span class="badge bg-warning">Warning</span></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">92%</span>
+                                    <div class="gauge-container">
+                                        <div class="gauge-fill gauge-high" style="width: 92%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">45%</span>
+                                    <div class="gauge-container">
+                                        <div class="gauge-fill gauge-medium" style="width: 45%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>5d 14h</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-primary"><i data-feather="refresh-cw" style="width: 14px;"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i data-feather="power" style="width: 14px;"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>103</td>
+                            <td>cache-server</td>
+                            <td>LXC</td>
+                            <td>pve3</td>
+                            <td><span class="badge bg-danger">Error</span></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">0%</span>
+                                    <div class="gauge-container">
+                                        <div class="gauge-fill gauge-low" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">0%</span>
+                                    <div class="gauge-container">
+                                        <div class="gauge-fill gauge-low" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>0d 0h</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-outline-success"><i data-feather="play" style="width: 14px;"></i></button>
+                                    <button class="btn btn-sm btn-outline-secondary"><i data-feather="info" style="width: 14px;"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts and Notifications -->
+    <div class="card border-0 shadow-lg mb-4">
+        <div class="card-header bg-primary bg-gradient text-white">
+            <h4 class="mb-0">Recent Alerts</h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <strong>Critical:</strong> VM cache-server (ID: 103) is not responding. <small class="text-muted">12 minutes ago</small>
+            </div>
+            <div class="alert alert-warning">
+                <strong>Warning:</strong> VM app-server (ID: 102) CPU usage above 90% threshold. <small class="text-muted">42 minutes ago</small>
+            </div>
+            <div class="alert alert-warning">
+                <strong>Warning:</strong> VM db-server (ID: 101) memory usage above 85% threshold. <small class="text-muted">2 hours ago</small>
+            </div>
+            <div class="alert alert-info">
+                <strong>Info:</strong> Scheduled maintenance on node pve2 in 3 days. <small class="text-muted">1 day ago</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // CPU Usage Chart
+    const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+    const cpuChart = new Chart(cpuCtx, {
+        type: 'line',
+        data: {
+            labels: ['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', '1h ago', 'Now'],
+            datasets: [{
+                label: 'Cluster CPU Usage (%)',
+                data: [28, 32, 45, 76, 56, 48, 52],
+                borderColor: '#0dcaf0',
+                backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'CPU Usage (%)'
+                    }
+                }
+            }
+        }
+    });
+
+    // Memory Usage Chart
+    const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+    const memoryChart = new Chart(memoryCtx, {
+        type: 'line',
+        data: {
+            labels: ['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', '1h ago', 'Now'],
+            datasets: [{
+                label: 'Cluster Memory Usage (%)',
+                data: [42, 45, 50, 62, 68, 71, 65],
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Memory Usage (%)'
+                    }
+                }
+            }
+        }
+    });
+
+    // If we were in a production environment, we would fetch real data here
+    // Example of how this would work with real data:
+    /*
+    function updateMetrics() {
+        fetch('/api/metrics')
+            .then(response => response.json())
+            .then(data => {
+                // Update summary counters
+                document.getElementById('healthyNodes').textContent = `${data.healthy_nodes}/${data.total_nodes}`;
+                document.getElementById('healthyVMs').textContent = `${data.healthy_vms}/${data.total_vms}`;
+                document.getElementById('healthyContainers').textContent = `${data.healthy_containers}/${data.total_containers}`;
+                document.getElementById('healthyStorage').textContent = `${data.healthy_storage}/${data.total_storage}`;
+                
+                // Update charts
+                cpuChart.data.datasets[0].data = data.cpu_history;
+                cpuChart.update();
+                
+                memoryChart.data.datasets[0].data = data.memory_history;
+                memoryChart.update();
+                
+                // Update VM/container table
+                updateTable(data.vms);
+            })
+            .catch(error => {
+                console.error('Error fetching metrics:', error);
+            });
+    }
+    
+    // Update metrics every minute
+    updateMetrics();
+    setInterval(updateMetrics, 60000);
+    */
+
+    // Refresh icons after dynamic content is loaded
+    feather.replace();
+});
+</script>
+{% endblock %}

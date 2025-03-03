@@ -5,7 +5,7 @@
     <!-- Resource Summary Cards -->
     <div class="row mb-4">
         <div class="col-md-4">
-            <div class="card border-0 shadow-lg bg-dark h-100">
+            <div class="card border-0 shadow-lg h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
@@ -15,13 +15,24 @@
                             <h6 class="text-muted mb-0">Total vCPU</h6>
                             <h3 class="mb-0">{{ resource_summary.vcpu_total }} Cores</h3>
                             <small class="text-muted">{{ resource_summary.vcpu_used }} cores in use</small>
+                            
+                            {% set vcpu_percent = (resource_summary.vcpu_used / resource_summary.vcpu_total * 100) | int %}
+                            <div class="gauge-container mt-2">
+                                <div class="gauge-fill 
+                                    {% if vcpu_percent < 50 %}gauge-low
+                                    {% elif vcpu_percent < 80 %}gauge-medium
+                                    {% else %}gauge-high{% endif %}" 
+                                    style="width: {{ vcpu_percent }}%">
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ vcpu_percent }}% utilization</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-lg bg-dark h-100">
+            <div class="card border-0 shadow-lg h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
@@ -31,13 +42,24 @@
                             <h6 class="text-muted mb-0">Total RAM</h6>
                             <h3 class="mb-0">{{ resource_summary.ram_total }}GB</h3>
                             <small class="text-muted">{{ resource_summary.ram_used }}GB in use</small>
+                            
+                            {% set ram_percent = (resource_summary.ram_used / resource_summary.ram_total * 100) | int %}
+                            <div class="gauge-container mt-2">
+                                <div class="gauge-fill 
+                                    {% if ram_percent < 50 %}gauge-low
+                                    {% elif ram_percent < 80 %}gauge-medium
+                                    {% else %}gauge-high{% endif %}" 
+                                    style="width: {{ ram_percent }}%">
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ ram_percent }}% utilization</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-lg bg-dark h-100">
+            <div class="card border-0 shadow-lg h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
@@ -47,6 +69,17 @@
                             <h6 class="text-muted mb-0">Total Storage</h6>
                             <h3 class="mb-0">{{ resource_summary.storage_total }}TB</h3>
                             <small class="text-muted">{{ resource_summary.storage_used }}TB in use</small>
+                            
+                            {% set storage_percent = (resource_summary.storage_used / resource_summary.storage_total * 100) | int %}
+                            <div class="gauge-container mt-2">
+                                <div class="gauge-fill 
+                                    {% if storage_percent < 50 %}gauge-low
+                                    {% elif storage_percent < 80 %}gauge-medium
+                                    {% else %}gauge-high{% endif %}" 
+                                    style="width: {{ storage_percent }}%">
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ storage_percent }}% utilization</small>
                         </div>
                     </div>
                 </div>

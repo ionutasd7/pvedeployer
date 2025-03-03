@@ -8,27 +8,59 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
     <style>
         /* Modern, futuristic theme enhancements */
-        body {
+        .theme-dark {
             background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            color: #f8f9fa;
         }
-        .navbar {
+        
+        .theme-light {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #212529;
+        }
+        
+        .theme-dark .navbar {
             backdrop-filter: blur(10px);
             background: rgba(33, 37, 41, 0.8) !important;
         }
-        .card {
+        
+        .theme-light .navbar {
+            backdrop-filter: blur(10px);
+            background: rgba(248, 249, 250, 0.8) !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .theme-dark .card {
             border: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(33, 37, 41, 0.8);
             backdrop-filter: blur(10px);
         }
-        .form-control, .form-select {
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        
+        .theme-light .card {
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
+        
+        .theme-dark .form-control, .theme-dark .form-select {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(33, 37, 41, 0.9) !important;
+            color: #f8f9fa !important;
+        }
+        
+        .theme-light .form-control, .theme-light .form-select {
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            color: #212529 !important;
+        }
+        
         .btn-primary {
             background: linear-gradient(45deg, #0d6efd, #0dcaf0);
             border: none;
             position: relative;
             overflow: hidden;
         }
+        
         .btn-primary::after {
             content: '';
             position: absolute;
@@ -41,13 +73,16 @@
             transition: all 0.3s;
             opacity: 0;
         }
+        
         .btn-primary:hover::after {
             opacity: 1;
         }
+        
         .nav-link {
             position: relative;
             overflow: hidden;
         }
+        
         .nav-link::after {
             content: '';
             position: absolute;
@@ -58,9 +93,85 @@
             background: #0dcaf0;
             transition: width 0.3s;
         }
+        
         .nav-link:hover::after {
             width: 100%;
         }
+        
+        /* Theme toggle switch */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        
+        .theme-switch {
+            display: inline-block;
+            position: relative;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #0dcaf0;
+        }
+        
+        input:focus + .slider {
+            box-shadow: 0 0 1px #0dcaf0;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* Resource usage gauges */
+        .gauge-container {
+            width: 100%;
+            height: 12px;
+            background-color: rgba(200, 200, 200, 0.2);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .gauge-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease-in-out;
+        }
+        
+        .gauge-low { background-color: #0dcaf0; }
+        .gauge-medium { background-color: #ffc107; }
+        .gauge-high { background-color: #dc3545; }
     </style>
 </head>
 <body>
@@ -96,10 +207,25 @@
                             <i data-feather="play"></i> Deployments
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#monitoring">
+                            <i data-feather="activity"></i> Monitoring
+                        </a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav">
+                    <li class="nav-item me-3">
+                        <div class="theme-switch-wrapper d-flex align-items-center">
+                            <i data-feather="sun" class="me-1" style="width: 16px; height: 16px;"></i>
+                            <label class="theme-switch mx-1">
+                                <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+                                <span class="slider"></span>
+                            </label>
+                            <i data-feather="moon" class="ms-1" style="width: 16px; height: 16px;"></i>
+                        </div>
+                    </li>
                     <li class="nav-item">
-                        <span class="nav-link text-light">
+                        <span class="nav-link">
                             <i data-feather="user"></i> {{ current_user.username }}
                         </span>
                     </li>
@@ -135,6 +261,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <script>
         feather.replace();
     </script>
