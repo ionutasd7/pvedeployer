@@ -172,7 +172,31 @@ class ProxmoxAPI:
 
             # Add IP configuration if provided
             if ip_config:
-                data['net0'] = f'name=eth0,ip={ip_config["ip"]}/24,gw={ip_config["gateway"]}'
+                # Build network string
+                net_config = f'name=eth0,ip={ip_config["ip"]}/24'
+                
+                # Add gateway if provided
+                if ip_config.get('gateway'):
+                    net_config += f',gw={ip_config["gateway"]}'
+                
+                # Add bridge if provided
+                if ip_config.get('bridge'):
+                    net_config += f',bridge={ip_config["bridge"]}'
+                
+                # Add VLAN tag if provided
+                if ip_config.get('vlan'):
+                    net_config += f',tag={ip_config["vlan"]}'
+                
+                # Set the network configuration
+                data['net0'] = net_config
+                
+                # Add DNS if provided
+                if ip_config.get('dns'):
+                    data['nameserver'] = ip_config["dns"]
+                
+                # Add firewall setting if enabled
+                if ip_config.get('firewall'):
+                    data['firewall'] = 1
 
             # Add tags if provided
             if tags:

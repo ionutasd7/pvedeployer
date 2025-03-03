@@ -95,11 +95,33 @@
                                     <div class="form-text">Leave blank for DHCP</div>
                                 </div>
                                 <div class="col-md-6">
+                                    <label for="deploymentGateway" class="form-label">Gateway</label>
+                                    <input type="text" class="form-control" id="deploymentGateway" name="gateway" placeholder="192.168.1.1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="deploymentDNS" class="form-label">DNS Servers</label>
+                                    <input type="text" class="form-control" id="deploymentDNS" name="dns" placeholder="8.8.8.8,1.1.1.1">
+                                    <div class="form-text">Comma-separated list of DNS servers</div>
+                                </div>
+                                <div class="col-md-6">
                                     <label for="deploymentBridge" class="form-label">Network Bridge</label>
                                     <select class="form-select" id="deploymentBridge" name="bridge">
                                         <option value="vmbr0" selected>vmbr0 (Default)</option>
                                         <option value="vmbr1">vmbr1</option>
                                     </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="deploymentVLAN" class="form-label">VLAN Tag (optional)</label>
+                                    <input type="number" class="form-control" id="deploymentVLAN" name="vlan" placeholder="10">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Firewall</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableFirewall" name="enable_firewall">
+                                        <label class="form-check-label" for="enableFirewall">
+                                            Enable firewall for this deployment
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -192,8 +214,24 @@
                             <span id="previewIP">DHCP</span>
                         </div>
                         <div class="d-flex justify-content-between">
+                            <span>Gateway:</span>
+                            <span id="previewGateway">192.168.1.1</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>DNS:</span>
+                            <span id="previewDNS">8.8.8.8, 1.1.1.1</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
                             <span>Bridge:</span>
                             <span id="previewBridge">vmbr0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>VLAN Tag:</span>
+                            <span id="previewVLAN">None</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Firewall:</span>
+                            <span id="previewFirewall">Disabled</span>
                         </div>
                     </div>
 
