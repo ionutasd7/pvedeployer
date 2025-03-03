@@ -86,13 +86,21 @@
                             </div>
                         </div>
 
-                        <div class="mb-4">
+                        <div class="mb-4" id="networkSection">
                             <h6 class="mb-3">4. Network</h6>
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="deploymentIP" class="form-label">IP Address (optional)</label>
                                     <input type="text" class="form-control" id="deploymentIP" name="ip_address" placeholder="192.168.1.100">
                                     <div class="form-text">Leave blank for DHCP</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="deploymentBridge" class="form-label">Network Bridge</label>
+                                    <select class="form-select" id="deploymentBridge" name="bridge">
+                                        <option value="vmbr0" selected>vmbr0 (Default)</option>
+                                        <option value="vmbr1">vmbr1 (Internal)</option>
+                                        <option value="vmbr2">vmbr2 (DMZ)</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="deploymentGateway" class="form-label">Gateway</label>
@@ -116,11 +124,66 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Firewall</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="enableFirewall" name="enable_firewall">
-                                        <label class="form-check-label" for="enableFirewall">
-                                            Enable firewall for this deployment
-                                        </label>
+                                    <div class="col-12">
+                                    <div class="card border-0 shadow-sm p-3 mb-3">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-check form-switch mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="enableVLAN" name="enable_vlan">
+                                                    <label class="form-check-label" for="enableVLAN">
+                                                        Enable VLAN tagging
+                                                    </label>
+                                                </div>
+                                                <div class="mb-3" style="display:none">
+                                                    <label for="deploymentVLAN" class="form-label">VLAN Tag</label>
+                                                    <input type="number" class="form-control" id="deploymentVLAN" name="vlan" placeholder="10" min="1" max="4094">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="enableFirewall" name="enable_firewall">
+                                                    <label class="form-check-label" for="enableFirewall">
+                                                        Enable firewall for this deployment
+                                                    </label>
+                                                </div>
+                                                <div class="form-text">
+
+                            <div class="mb-3">
+                                <h6>Network Configuration</h6>
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>IP Address:</strong></td>
+                                            <td id="previewIP">DHCP</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Gateway:</strong></td>
+                                            <td id="previewGateway">---</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>DNS:</strong></td>
+                                            <td id="previewDNS">---</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Bridge:</strong></td>
+                                            <td id="previewBridge">vmbr0</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>VLAN:</strong></td>
+                                            <td id="previewVLAN">None</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Firewall:</strong></td>
+                                            <td id="previewFirewall">Disabled</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                                                    Applies default firewall policies to protect this deployment.
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -315,9 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
         previewMemory.textContent = `${memoryInput.value} MB`;
         previewStorage.textContent = `${storageInput.value} GB`;
         
-        // Update network
-        previewIP.textContent = ipInput.value || 'DHCP';
-        previewBridge.textContent = bridgeSelect.value;
+        // Update network preview is now handled by network.js
         
         // Update node
         if (autoSelectNode.checked) {

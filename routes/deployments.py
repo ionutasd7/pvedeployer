@@ -50,9 +50,12 @@ def create_deployment():
             'bridge': bridge or 'vmbr0',
             'gateway': request.form.get('gateway'),
             'dns': request.form.get('dns'),
-            'vlan': request.form.get('vlan'),
             'firewall': request.form.get('enable_firewall') == 'on'
         }
+        
+        # Only include VLAN if enabled
+        if request.form.get('enable_vlan') == 'on' and request.form.get('vlan'):
+            network_config['vlan'] = request.form.get('vlan')
 
     # ... (rest of the create_deployment function) ...
     #This is placeholder,  the actual implementation to create the deployment would go here.  
