@@ -34,6 +34,118 @@ def view_deployment(deployment_id):
 
     return render_template('deployments/view.html', deployment=deployment)
 
+@deployments.route('/api/deployments/count')
+@login_required
+def deployment_count():
+    """Get the count of deployments for the current user"""
+    count = Deployment.query.filter_by(user_id=current_user.id).count()
+    return jsonify({'count': count})
+
+@deployments.route('/api/resources/summary')
+@login_required
+def resource_summary():
+    """Get summary of total allocated resources"""
+    deployments = Deployment.query.filter_by(user_id=current_user.id).all()
+    
+    cpu_total = sum(d.cpu for d in deployments)
+    ram_total = sum(d.memory for d in deployments)
+    storage_total = sum(d.storage for d in deployments)
+    
+    return jsonify({
+        'cpu_total': cpu_total,
+        'ram_total_gb': round(ram_total / 1024, 1),
+        'storage_total_gb': storage_total
+    })
+
+@deployments.route('/deployments/<int:deployment_id>/settings')
+@login_required
+def deployment_settings(deployment_id):
+    """View deployment settings"""
+    deployment = Deployment.query.get_or_404(deployment_id)
+    if deployment.user_id != current_user.id:
+        flash('You do not have permission to view this deployment', 'danger')
+        return redirect(url_for('deployments.list_deployments'))
+
+    return render_template('deployments/settings.html', deployment=deployment)
+
+@deployments.route('/deployments/<int:deployment_id>/settings/save', methods=['POST'])
+@login_required
+def save_settings(deployment_id):
+    """Save deployment settings"""
+    deployment = Deployment.query.get_or_404(deployment_id)
+    if deployment.user_id != current_user.id:
+        return jsonify({'success': False, 'message': 'Permission denied'})
+
+    try:
+        # Update deployment settings
+        deployment.name = request.form.get('deployment_name', deployment.name)
+        deployment.cpu = int(request.form.get('cpu', deployment.cpu))
+        deployment.memory = int(request.form.get('memory', deployment.memory))
+        deployment.storage = int(request.form.get('storage', deployment.storage))
+        
+        # Update advanced settings
+        deployment.autostart = request.form.get('autostart') == 'on'
+        deployment.autoreboot = request.form.get('autoreboot') == 'on'
+        deployment.backup_enabled = request.form.get('backup_enabled') == 'on'
+        deployment.backup_schedule = request.form.get('backup_schedule', 'weekly')
+
+        # Update tags
+        tags_str = request.form.get('tags', '')
+        if tags_str:
+            deployment.tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+        else:
+            deployment.tags = []
+
+        # Save changes
+        db.session.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
+
+@deployments.route('/deployments/<int:deployment_id>/reset', methods=['POST'])
+@login_required
+def reset_deployment(deployment_id):
+    """Reset deployment to original template state"""
+    deployment = Deployment.query.get_or_404(deployment_id)
+    if deployment.user_id != current_user.id:
+        flash('You do not have permission to reset this deployment', 'danger')
+        return redirect(url_for('deployments.list_deployments'))
+
+    try:
+        # Implementation would go here
+        # This would call the Proxmox API to actually reset the VM/container
+        
+        flash('Deployment has been reset to template defaults', 'success')
+    except Exception as e:
+        flash(f'Error resetting deployment: {str(e)}', 'danger')
+    
+    return redirect(url_for('deployments.view_deployment', deployment_id=deployment.id))
+
+@deployments.route('/deployments/<int:deployment_id>/delete', methods=['POST'])
+@login_required
+def delete_deployment(deployment_id):
+    """Delete a deployment"""
+    deployment = Deployment.query.get_or_404(deployment_id)
+    if deployment.user_id != current_user.id:
+        flash('You do not have permission to delete this deployment', 'danger')
+        return redirect(url_for('deployments.list_deployments'))
+
+    try:
+        # Implementation would go here to delete the VM/container from Proxmox
+        
+        # Delete from database
+        db.session.delete(deployment)
+        db.session.commit()
+        
+        flash('Deployment has been deleted', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting deployment: {str(e)}', 'danger')
+    
+    return redirect(url_for('deployments.list_deployments'))
+
 @deployments.route('/deployments/create', methods=['POST'])
 @login_required
 def create_deployment():

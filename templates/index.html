@@ -1,4 +1,3 @@
-
 {% extends "layout.html" %}
 {% block title %}Dashboard{% endblock %}
 
@@ -104,6 +103,47 @@
             </div>
         </div>
     </div>
+
+    <!-- Resource Usage Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg text-center h-100">
+                <div class="card-body">
+                    <h3 class="card-title"><i class="bi bi-hdd-rack text-primary"></i></h3>
+                    <h5 class="text-muted">Proxmox Nodes</h5>
+                    <h2 class="mb-0" id="nodeCount">-</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg text-center h-100">
+                <div class="card-body">
+                    <h3 class="card-title"><i class="bi bi-window text-success"></i></h3>
+                    <h5 class="text-muted">Deployments</h5>
+                    <h2 class="mb-0" id="deploymentCount">-</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg text-center h-100">
+                <div class="card-body">
+                    <h3 class="card-title"><i class="bi bi-cpu text-info"></i></h3>
+                    <h5 class="text-muted">Total vCPUs</h5>
+                    <h2 class="mb-0" id="cpuCount">-</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-lg text-center h-100">
+                <div class="card-body">
+                    <h3 class="card-title"><i class="bi bi-memory text-warning"></i></h3>
+                    <h5 class="text-muted">Total RAM</h5>
+                    <h2 class="mb-0" id="ramTotal">-</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <div class="row mb-4">
         <!-- CPU and Memory Usage Chart -->

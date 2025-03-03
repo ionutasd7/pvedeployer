@@ -1,0 +1,254 @@
+
+{% extends "layout.html" %}
+{% block title %}Deployment Settings{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="bi bi-gear me-2"></i> Deployment Settings
+        </h2>
+        <a href="{{ url_for('deployments.list_deployments') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Deployments
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <form id="settingsForm" action="{{ url_for('deployments.save_settings', deployment_id=deployment.id) }}" method="POST">
+                        <!-- General Settings Section -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2">General Settings</h5>
+                            
+                            <div class="mb-3">
+                                <label for="deployment_name" class="form-label">Deployment Name</label>
+                                <input type="text" class="form-control" id="deployment_name" name="deployment_name" 
+                                       value="{{ deployment.name }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="2">{{ deployment.description if deployment.description else '' }}</textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="tags" class="form-label">Tags (comma separated)</label>
+                                <input type="text" class="form-control" id="tags" name="tags" 
+                                       value="{{ deployment.tags|join(',') if deployment.tags else '' }}">
+                            </div>
+                        </div>
+                        
+                        <!-- Resource Settings Section -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2">Resources</h5>
+                            
+                            <div class="mb-3">
+                                <label for="cpu" class="form-label">vCPU Cores</label>
+                                <input type="number" class="form-control" id="cpu" name="cpu" min="1" max="64" 
+                                       value="{{ deployment.cpu }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="memory" class="form-label">Memory (MB)</label>
+                                <input type="number" class="form-control" id="memory" name="memory" min="512" 
+                                       value="{{ deployment.memory }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="storage" class="form-label">Storage (GB)</label>
+                                <input type="number" class="form-control" id="storage" name="storage" min="1" 
+                                       value="{{ deployment.storage }}">
+                            </div>
+                        </div>
+                        
+                        <!-- Advanced Settings Section -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2">Advanced Settings</h5>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="autostart" name="autostart" 
+                                      {% if deployment.autostart %}checked{% endif %}>
+                                <label class="form-check-label" for="autostart">Start on boot</label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="autoreboot" name="autoreboot" 
+                                      {% if deployment.autoreboot %}checked{% endif %}>
+                                <label class="form-check-label" for="autoreboot">Automatically reboot on crash</label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="backup_enabled" name="backup_enabled" 
+                                      {% if deployment.backup_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="backup_enabled">Enable automatic backups</label>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="backup_schedule" class="form-label">Backup Schedule</label>
+                                <select class="form-select" id="backup_schedule" name="backup_schedule">
+                                    <option value="daily" {% if deployment.backup_schedule == 'daily' %}selected{% endif %}>Daily</option>
+                                    <option value="weekly" {% if deployment.backup_schedule == 'weekly' %}selected{% endif %}>Weekly</option>
+                                    <option value="monthly" {% if deployment.backup_schedule == 'monthly' %}selected{% endif %}>Monthly</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i> Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-lg mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">Danger Zone</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">These actions are destructive and cannot be reversed.</p>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resetModal">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset to Template
+                        </button>
+                        
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="bi bi-trash me-1"></i> Delete Deployment
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-lg">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6>Deployment ID</h6>
+                        <p class="text-muted">{{ deployment.id }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>VM ID</h6>
+                        <p class="text-muted">{{ deployment.vmid }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6>Created</h6>
+                        <p class="text-muted">{{ deployment.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                    
+                    <div class="mb-0">
+                        <h6>Last Updated</h6>
+                        <p class="text-muted mb-0">{{ deployment.last_updated.strftime('%Y-%m-%d %H:%M') if deployment.last_updated else 'Never' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Modal -->
+<div class="modal fade" id="resetModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reset Deployment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to reset this deployment to its original template state? This will:</p>
+                <ul>
+                    <li>Delete all data on the deployment</li>
+                    <li>Reset configuration to template defaults</li>
+                    <li>Remove all installed applications</li>
+                </ul>
+                <p class="text-danger fw-bold">This action cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('deployments.reset_deployment', deployment_id=deployment.id) }}" method="POST">
+                    <button type="submit" class="btn btn-danger">Reset Deployment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Deployment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>{{ deployment.name }}</strong>?</p>
+                <p>This will permanently remove the deployment and all associated data.</p>
+                <p class="text-danger fw-bold">This action cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('deployments.delete_deployment', deployment_id=deployment.id) }}" method="POST">
+                    <button type="submit" class="btn btn-danger">Delete Permanently</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const settingsForm = document.getElementById('settingsForm');
+    if (settingsForm) {
+        settingsForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            // Show loading notification
+            const loadingNotif = window.notyf.open({
+                type: 'info',
+                message: 'Saving settings...',
+                duration: false
+            });
+            
+            // Submit form via AJAX
+            fetch(this.action, {
+                method: 'POST',
+                body: new FormData(this),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                window.notyf.dismiss(loadingNotif);
+                if (data.success) {
+                    window.notyf.success('Settings updated successfully');
+                } else {
+                    window.notyf.error(data.message || 'Error saving settings');
+                }
+            })
+            .catch(error => {
+                window.notyf.dismiss(loadingNotif);
+                window.notyf.error('An error occurred while saving settings');
+                console.error('Error:', error);
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
