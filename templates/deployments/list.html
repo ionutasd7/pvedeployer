@@ -12,7 +12,7 @@
 
     <div class="card border-0 shadow-lg mb-4">
         <div class="card-header bg-primary bg-gradient text-white">
-            <h4 class="mb-0">Your Deployments</h4>
+            <h4 class="mb-0">Active Deployments</h4>
         </div>
         <div class="card-body">
             {% if deployments %}
@@ -23,9 +23,8 @@
                             <th>Name</th>
                             <th>Type</th>
                             <th>Node</th>
-                            <th>Status</th>
-                            <th>IP Address</th>
                             <th>Resources</th>
+                            <th>Status</th>
                             <th>Created</th>
                             <th>Actions</th>
                         </tr>
@@ -33,11 +32,7 @@
                     <tbody>
                         {% for deployment in deployments %}
                         <tr>
-                            <td>
-                                <a href="{{ url_for('deployments.view_deployment', deployment_id=deployment.id) }}">
-                                    {{ deployment.name }}
-                                </a>
-                            </td>
+                            <td>{{ deployment.name }}</td>
                             <td>
                                 {% if deployment.type == 'lxc' %}
                                 <span class="badge bg-info">LXC</span>
@@ -45,7 +40,14 @@
                                 <span class="badge bg-primary">VM</span>
                                 {% endif %}
                             </td>
-                            <td>{{ deployment.node.name }}</td>
+                            <td>{{ deployment.node_name }}</td>
+                            <td>
+                                <small>
+                                    <i data-feather="cpu" style="width: 14px;"></i> {{ deployment.cpu }} vCPUs |
+                                    <i data-feather="database" style="width: 14px;"></i> {{ deployment.memory }} MB RAM |
+                                    <i data-feather="hard-drive" style="width: 14px;"></i> {{ deployment.storage }} GB
+                                </small>
+                            </td>
                             <td>
                                 {% if deployment.status == 'running' %}
                                 <span class="badge bg-success">Running</span>
@@ -54,14 +56,6 @@
                                 {% else %}
                                 <span class="badge bg-warning">{{ deployment.status }}</span>
                                 {% endif %}
-                            </td>
-                            <td>{{ deployment.ip_address }}</td>
-                            <td>
-                                <small>
-                                    CPU: {{ deployment.cpu }} cores<br>
-                                    RAM: {{ deployment.memory // 1024 }} GB<br>
-                                    Storage: {{ deployment.storage }} GB
-                                </small>
                             </td>
                             <td>{{ deployment.created_at.strftime('%Y-%m-%d') }}</td>
                             <td>
@@ -84,15 +78,24 @@
             </div>
             {% else %}
             <div class="alert alert-info">
-                <i data-feather="info"></i> No deployments found. Create your first deployment to get started.
+                <i data-feather="info"></i> No active deployments. Create your first deployment to get started.
             </div>
-            <div class="text-center mt-3">
-                <a href="{{ url_for('deployments.new_deployment') }}" class="btn btn-primary">
-                    <i data-feather="plus"></i> Create Deployment
+            <div class="text-center mt-4">
+                <a href="{{ url_for('deployments.new_deployment') }}" class="btn btn-lg btn-outline-primary">
+                    <i data-feather="play"></i> Create First Deployment
                 </a>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Feather icons
+    feather.replace();
+});
+</script>
 {% endblock %}

@@ -198,7 +198,7 @@ from routes.deployments import deployments as deployments_blueprint
 app.register_blueprint(auth_blueprint)
 app.register_blueprint(nodes_blueprint)
 app.register_blueprint(scripts_blueprint)
-app.register_blueprint(templates_blueprint)
+app.register_blueprint(templates_blueprint, name="templates")
 app.register_blueprint(deployments_blueprint)
 
 @app.route('/')

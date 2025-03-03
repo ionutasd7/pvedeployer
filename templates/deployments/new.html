@@ -3,39 +3,31 @@
 
 {% block content %}
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i data-feather="play"></i> New Deployment</h2>
-        <a href="{{ url_for('deployments.list_deployments') }}" class="btn btn-outline-secondary">
-            <i data-feather="arrow-left"></i> Back to Deployments
-        </a>
-    </div>
+    <h2 class="mb-4"><i data-feather="play"></i> New Deployment</h2>
 
-    <div class="card border-0 shadow-lg mb-4">
+    <div class="card border-0 shadow-lg">
         <div class="card-header bg-primary bg-gradient text-white">
-            <h4 class="mb-0">Create New Deployment</h4>
+            <h4 class="mb-0">Deployment Configuration</h4>
         </div>
         <div class="card-body">
-            <form id="deployForm" action="{{ url_for('api_deploy') }}" method="POST">
-                <div class="mb-4">
-                    <label class="form-label">Deployment Name</label>
-                    <input type="text" class="form-control form-control-lg" name="name" required
-                          placeholder="e.g., web-server-01, db-mysql-prod">
+            <form id="deploymentForm">
+                <div class="mb-3">
+                    <label for="deploymentName" class="form-label">Deployment Name</label>
+                    <input type="text" class="form-control" id="deploymentName" placeholder="e.g., web-server-1" required>
                 </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label">Template</label>
-                        <select class="form-select form-select-lg" name="template" required>
-                            <option value="">Select a template...</option>
-                            <option value="local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz" {% if template_id == "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz" %}selected{% endif %}>Ubuntu 22.04 LXC</option>
-                            <option value="local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz" {% if template_id == "local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz" %}selected{% endif %}>Debian 11 LXC</option>
-                            <option value="ceph-pool:vm/template/ubuntu-22.04-cloud" {% if template_id == "ceph-pool:vm/template/ubuntu-22.04-cloud" %}selected{% endif %}>Ubuntu 22.04 VM</option>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="deploymentType" class="form-label">Type</label>
+                        <select class="form-select" id="deploymentType" required>
+                            <option value="lxc">LXC Container</option>
+                            <option value="vm">Virtual Machine</option>
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Node</label>
-                        <select class="form-select form-select-lg" name="node" required>
-                            <option value="">Select a node...</option>
+                    <div class="col-md-6 mb-3">
+                        <label for="deploymentNode" class="form-label">Target Node</label>
+                        <select class="form-select" id="deploymentNode" required>
+                            <option value="">Select a node</option>
                             {% for node in nodes %}
                             <option value="{{ node.id }}">{{ node.name }}</option>
                             {% endfor %}
@@ -43,55 +35,71 @@
                     </div>
                 </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <label class="form-label">CPU Cores</label>
-                        <input type="number" class="form-control form-control-lg" name="cpu" value="1" min="1" max="32" required>
+                <div class="mb-3">
+                    <label for="deploymentTemplate" class="form-label">Template</label>
+                    <select class="form-select" id="deploymentTemplate" required>
+                        <option value="">Select a template</option>
+                        <option value="local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz" {% if template_id == "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz" %}selected{% endif %}>Ubuntu 22.04 LXC</option>
+                        <option value="local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz" {% if template_id == "local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz" %}selected{% endif %}>Debian 11 LXC</option>
+                        <option value="ceph-pool:vm/template/ubuntu-22.04-cloud" {% if template_id == "ceph-pool:vm/template/ubuntu-22.04-cloud" %}selected{% endif %}>Ubuntu 22.04 VM</option>
+                    </select>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="deploymentCPU" class="form-label">CPU Cores</label>
+                        <input type="number" class="form-control" id="deploymentCPU" min="1" max="16" value="2" required>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Memory (MB)</label>
-                        <input type="number" class="form-control form-control-lg" name="memory" value="1024" min="512" step="512" required>
+                    <div class="col-md-4 mb-3">
+                        <label for="deploymentMemory" class="form-label">Memory (MB)</label>
+                        <input type="number" class="form-control" id="deploymentMemory" min="512" value="2048" step="512" required>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Storage (GB)</label>
-                        <input type="number" class="form-control form-control-lg" name="storage" value="10" min="5" required>
+                    <div class="col-md-4 mb-3">
+                        <label for="deploymentStorage" class="form-label">Storage (GB)</label>
+                        <input type="number" class="form-control" id="deploymentStorage" min="5" value="20" required>
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label">IP Address</label>
-                    <input type="text" class="form-control form-control-lg" name="ip_address" 
-                           placeholder="e.g., 192.168.1.100/24">
-                    <div class="form-text">Leave blank for DHCP</div>
+                <div class="mb-3">
+                    <label for="deploymentIPAddress" class="form-label">IP Address Configuration</label>
+                    <select class="form-select" id="deploymentIPConfig">
+                        <option value="dhcp">DHCP (Automatic)</option>
+                        <option value="static">Static IP</option>
+                    </select>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Post-Deployment Scripts</label>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="install_monitoring" id="install_monitoring">
-                        <label class="form-check-label" for="install_monitoring">
-                            Install Monitoring Agent
-                        </label>
+                <div id="staticIPFields" class="d-none">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="deploymentIPAddress" class="form-label">IP Address</label>
+                            <input type="text" class="form-control" id="deploymentIPAddress" placeholder="e.g., 192.168.1.100">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="deploymentNetmask" class="form-label">Netmask</label>
+                            <input type="text" class="form-control" id="deploymentNetmask" placeholder="e.g., 255.255.255.0">
+                        </div>
                     </div>
-                    <a href="{{ url_for('scripts.list_scripts') }}" class="btn btn-sm btn-outline-primary">
-                        <i data-feather="settings"></i> Manage Scripts
-                    </a>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="deploymentGateway" class="form-label">Gateway</label>
+                            <input type="text" class="form-control" id="deploymentGateway" placeholder="e.g., 192.168.1.1">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="deploymentDNS" class="form-label">DNS Servers</label>
+                            <input type="text" class="form-control" id="deploymentDNS" placeholder="e.g., 8.8.8.8,1.1.1.1">
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Tags</label>
-                    <input type="text" class="form-control form-control-lg" name="tags" placeholder="e.g., production, web-server, database">
+                <div class="mb-3">
+                    <label for="deploymentTags" class="form-label">Tags</label>
+                    <input type="text" class="form-control" id="deploymentTags" placeholder="e.g., web, production, ubuntu">
                     <div class="form-text">Separate tags with commas</div>
                 </div>
 
-                <div class="alert alert-danger d-none" id="errorAlert"></div>
-                <div class="alert alert-success d-none" id="successAlert"></div>
-
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg" id="deployBtn">
-                        <span class="spinner-border spinner-border-sm d-none" id="deploySpinner"></span>
-                        Deploy
-                    </button>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ url_for('deployments.list_deployments') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Deploy</button>
                 </div>
             </form>
         </div>
@@ -102,77 +110,78 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const deployForm = document.getElementById('deployForm');
-    const deployBtn = document.getElementById('deployBtn');
-    const deploySpinner = document.getElementById('deploySpinner');
-    const errorAlert = document.getElementById('errorAlert');
-    const successAlert = document.getElementById('successAlert');
-
-    // Handle form submission
-    deployForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        // Reset alerts
-        errorAlert.classList.add('d-none');
-        successAlert.classList.add('d-none');
-
-        // Show loading state
-        deployBtn.disabled = true;
-        deploySpinner.classList.remove('d-none');
-
-        try {
-            // Get form data
-            const formData = new FormData(deployForm);
-            const data = {
-                name: formData.get('name'),
-                template: formData.get('template'),
-                node: formData.get('node'),
-                cpu: parseInt(formData.get('cpu')),
-                memory: parseInt(formData.get('memory')),
-                storage: parseInt(formData.get('storage')),
-                ip_address: formData.get('ip_address'),
-                tags: formData.get('tags').split(',').map(tag => tag.trim()),
-                type: formData.get('template').includes('vztmpl') ? 'lxc' : 'vm',
-                monitoring: formData.get('install_monitoring') === 'on'
-            };
-
-            // Send request
-            const response = await fetch('/api/deploy', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                // Show success
-                successAlert.textContent = `Deployment successful! ${result.message || ''}`;
-                successAlert.classList.remove('d-none');
-
-                // Redirect to deployment list after 2 seconds
-                setTimeout(() => {
-                    window.location.href = '/deployments';
-                }, 2000);
-            } else {
-                // Show error
-                errorAlert.textContent = `Deployment failed: ${result.error || 'Unknown error'}`;
-                if (result.details) {
-                    errorAlert.textContent += ` (${result.details})`;
-                }
-                errorAlert.classList.remove('d-none');
-            }
-        } catch (error) {
-            console.error('Error during deployment:', error);
-            errorAlert.textContent = `Error: ${error.message || 'Failed to connect to server'}`;
-            errorAlert.classList.remove('d-none');
-        } finally {
-            // Reset loading state
-            deployBtn.disabled = false;
-            deploySpinner.classList.add('d-none');
+    // Initialize Feather icons
+    feather.replace();
+    
+    // Show/hide static IP fields based on IP configuration
+    const ipConfigSelect = document.getElementById('deploymentIPConfig');
+    const staticIPFields = document.getElementById('staticIPFields');
+    
+    ipConfigSelect.addEventListener('change', function() {
+        if (this.value === 'static') {
+            staticIPFields.classList.remove('d-none');
+        } else {
+            staticIPFields.classList.add('d-none');
         }
+    });
+    
+    // Form submission
+    const deploymentForm = document.getElementById('deploymentForm');
+    deploymentForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        const submitButton = this.querySelector('button[type="submit"]');
+        const originalText = submitButton.innerHTML;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deploying...';
+        submitButton.disabled = true;
+        
+        // Prepare data
+        const formData = {
+            name: document.getElementById('deploymentName').value,
+            type: document.getElementById('deploymentType').value,
+            node_id: document.getElementById('deploymentNode').value,
+            template: document.getElementById('deploymentTemplate').value,
+            cpu: parseInt(document.getElementById('deploymentCPU').value),
+            memory: parseInt(document.getElementById('deploymentMemory').value),
+            storage: parseInt(document.getElementById('deploymentStorage').value),
+            ip_config: document.getElementById('deploymentIPConfig').value,
+            tags: document.getElementById('deploymentTags').value.split(',').map(tag => tag.trim())
+        };
+        
+        // Add static IP config if selected
+        if (formData.ip_config === 'static') {
+            formData.ip_address = document.getElementById('deploymentIPAddress').value;
+            formData.netmask = document.getElementById('deploymentNetmask').value;
+            formData.gateway = document.getElementById('deploymentGateway').value;
+            formData.dns = document.getElementById('deploymentDNS').value;
+        }
+        
+        // Send request to API
+        fetch('/api/deploy', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Deployment failed: ' + data.details);
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+            } else {
+                // Show success message and redirect
+                alert('Deployment successful!');
+                window.location.href = '/deployments';
+            }
+        })
+        .catch(error => {
+            alert('An error occurred: ' + error.message);
+            submitButton.innerHTML = originalText;
+            submitButton.disabled = false;
+        });
     });
 });
 </script>
