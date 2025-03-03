@@ -3,105 +3,209 @@
 
 {% block content %}
 <div class="container">
-    <h2 class="mb-4"><i data-feather="play"></i> New Deployment</h2>
-
-    <div class="card border-0 shadow-lg">
-        <div class="card-header bg-primary bg-gradient text-white">
-            <h4 class="mb-0">Deployment Configuration</h4>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i data-feather="play" class="me-2"></i> New Deployment
+        </h2>
+        <div>
+            <a href="{{ url_for('deployments.list_deployments') }}" class="btn btn-outline-secondary">
+                <i data-feather="arrow-left"></i> Back to Deployments
+            </a>
         </div>
-        <div class="card-body">
-            <form id="deploymentForm">
-                <div class="mb-3">
-                    <label for="deploymentName" class="form-label">Deployment Name</label>
-                    <input type="text" class="form-control" id="deploymentName" placeholder="e.g., web-server-1" required>
-                </div>
+    </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="deploymentType" class="form-label">Type</label>
-                        <select class="form-select" id="deploymentType" required>
-                            <option value="lxc">LXC Container</option>
-                            <option value="vm">Virtual Machine</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="deploymentNode" class="form-label">Target Node</label>
-                        <select class="form-select" id="deploymentNode" required>
-                            <option value="">Select a node</option>
-                            {% for node in nodes %}
-                            <option value="{{ node.id }}">{{ node.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Deployment Configuration</h5>
                 </div>
-
-                <div class="mb-3">
-                    <label for="deploymentTemplate" class="form-label">Template</label>
-                    <select class="form-select" id="deploymentTemplate" required>
-                        <option value="">Select a template</option>
-                        <option value="local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz" {% if template_id == "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz" %}selected{% endif %}>Ubuntu 22.04 LXC</option>
-                        <option value="local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz" {% if template_id == "local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz" %}selected{% endif %}>Debian 11 LXC</option>
-                        <option value="ceph-pool:vm/template/ubuntu-22.04-cloud" {% if template_id == "ceph-pool:vm/template/ubuntu-22.04-cloud" %}selected{% endif %}>Ubuntu 22.04 VM</option>
-                    </select>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="deploymentCPU" class="form-label">CPU Cores</label>
-                        <input type="number" class="form-control" id="deploymentCPU" min="1" max="16" value="2" required>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="deploymentMemory" class="form-label">Memory (MB)</label>
-                        <input type="number" class="form-control" id="deploymentMemory" min="512" value="2048" step="512" required>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="deploymentStorage" class="form-label">Storage (GB)</label>
-                        <input type="number" class="form-control" id="deploymentStorage" min="5" value="20" required>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="deploymentIPAddress" class="form-label">IP Address Configuration</label>
-                    <select class="form-select" id="deploymentIPConfig">
-                        <option value="dhcp">DHCP (Automatic)</option>
-                        <option value="static">Static IP</option>
-                    </select>
-                </div>
-
-                <div id="staticIPFields" class="d-none">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="deploymentIPAddress" class="form-label">IP Address</label>
-                            <input type="text" class="form-control" id="deploymentIPAddress" placeholder="e.g., 192.168.1.100">
+                <div class="card-body">
+                    <form id="deploymentForm" action="#" method="POST">
+                        <div class="mb-4">
+                            <h6 class="mb-3">1. Deployment Type</h6>
+                            <div class="d-flex">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="deploymentType" id="typeVM" value="vm" checked>
+                                    <label class="form-check-label" for="typeVM">
+                                        <i data-feather="monitor" class="me-1"></i> Virtual Machine
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="deploymentType" id="typeLXC" value="lxc">
+                                    <label class="form-check-label" for="typeLXC">
+                                        <i data-feather="package" class="me-1"></i> LXC Container
+                                    </label>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="deploymentNetmask" class="form-label">Netmask</label>
-                            <input type="text" class="form-control" id="deploymentNetmask" placeholder="e.g., 255.255.255.0">
+
+                        <div class="mb-4">
+                            <h6 class="mb-3">2. Basic Information</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="deploymentName" class="form-label">Name</label>
+                                    <input type="text" class="form-control" id="deploymentName" name="name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="deploymentTemplate" class="form-label">Template</label>
+                                    <select class="form-select" id="deploymentTemplate" name="template" required>
+                                        <option value="" selected disabled>Select a template</option>
+                                        <option value="local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.gz">Ubuntu 22.04 LXC</option>
+                                        <option value="local:vztmpl/debian-11-standard_11.0-1_amd64.tar.gz">Debian 11 LXC</option>
+                                        <option value="ceph-pool:vm/template/ubuntu-22.04-cloud">Ubuntu 22.04 VM</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="mb-3">3. Resources</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="deploymentCPU" class="form-label">CPU Cores</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="deploymentCPU" name="cpu" min="1" value="2" required>
+                                        <span class="input-group-text">cores</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="deploymentMemory" class="form-label">Memory</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="deploymentMemory" name="memory" min="512" value="2048" required>
+                                        <span class="input-group-text">MB</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="deploymentStorage" class="form-label">Storage</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="deploymentStorage" name="storage" min="5" value="20" required>
+                                        <span class="input-group-text">GB</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="mb-3">4. Network</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="deploymentIP" class="form-label">IP Address (optional)</label>
+                                    <input type="text" class="form-control" id="deploymentIP" name="ip_address" placeholder="192.168.1.100">
+                                    <div class="form-text">Leave blank for DHCP</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="deploymentBridge" class="form-label">Network Bridge</label>
+                                    <select class="form-select" id="deploymentBridge" name="bridge">
+                                        <option value="vmbr0" selected>vmbr0 (Default)</option>
+                                        <option value="vmbr1">vmbr1</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="mb-3">5. Node Selection</h6>
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-6">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="autoSelectNode" name="auto_select_node" checked>
+                                        <label class="form-check-label" for="autoSelectNode">
+                                            Automatically select best node
+                                        </label>
+                                    </div>
+                                    <select class="form-select" id="deploymentNode" name="node" disabled>
+                                        {% for node in nodes %}
+                                        <option value="{{ node.id }}">{{ node.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="button" id="recommendNodeBtn" class="btn btn-outline-primary">
+                                        <i data-feather="cpu"></i> Recommend Best Node
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="mb-3">6. Post-Deployment Scripts</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="installSSHKeys" name="install_ssh_keys">
+                                <label class="form-check-label" for="installSSHKeys">
+                                    Install SSH Keys
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="installMonitoring" name="install_monitoring">
+                                <label class="form-check-label" for="installMonitoring">
+                                    Install Monitoring Agent
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="reset" class="btn btn-outline-secondary me-md-2">Reset</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i data-feather="play" class="me-1"></i> Deploy
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-lg mb-4 sticky-top" style="top: 80px; z-index: 100;">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Deployment Preview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 text-center">
+                        <div id="previewIcon" class="mb-2">
+                            <i data-feather="monitor" style="width: 48px; height: 48px;"></i>
+                        </div>
+                        <h4 id="previewName">New Deployment</h4>
+                        <span class="badge bg-primary mb-3" id="previewType">Virtual Machine</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted">Resources</h6>
+                        <div class="d-flex justify-content-between">
+                            <span>CPU:</span>
+                            <span id="previewCPU">2 cores</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Memory:</span>
+                            <span id="previewMemory">2048 MB</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Storage:</span>
+                            <span id="previewStorage">20 GB</span>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="deploymentGateway" class="form-label">Gateway</label>
-                            <input type="text" class="form-control" id="deploymentGateway" placeholder="e.g., 192.168.1.1">
+
+                    <div class="mb-3">
+                        <h6 class="text-muted">Network</h6>
+                        <div class="d-flex justify-content-between">
+                            <span>IP:</span>
+                            <span id="previewIP">DHCP</span>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="deploymentDNS" class="form-label">DNS Servers</label>
-                            <input type="text" class="form-control" id="deploymentDNS" placeholder="e.g., 8.8.8.8,1.1.1.1">
+                        <div class="d-flex justify-content-between">
+                            <span>Bridge:</span>
+                            <span id="previewBridge">vmbr0</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h6 class="text-muted">Node</h6>
+                        <div class="d-flex justify-content-between">
+                            <span>Selected:</span>
+                            <span id="previewNode">Auto-select</span>
                         </div>
                     </div>
                 </div>
-
-                <div class="mb-3">
-                    <label for="deploymentTags" class="form-label">Tags</label>
-                    <input type="text" class="form-control" id="deploymentTags" placeholder="e.g., web, production, ubuntu">
-                    <div class="form-text">Separate tags with commas</div>
-                </div>
-
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <a href="{{ url_for('deployments.list_deployments') }}" class="btn btn-secondary me-md-2">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Deploy</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
@@ -113,76 +217,158 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Feather icons
     feather.replace();
     
-    // Show/hide static IP fields based on IP configuration
-    const ipConfigSelect = document.getElementById('deploymentIPConfig');
-    const staticIPFields = document.getElementById('staticIPFields');
+    // Form preview functionality
+    const deploymentForm = document.getElementById('deploymentForm');
+    const nameInput = document.getElementById('deploymentName');
+    const cpuInput = document.getElementById('deploymentCPU');
+    const memoryInput = document.getElementById('deploymentMemory');
+    const storageInput = document.getElementById('deploymentStorage');
+    const ipInput = document.getElementById('deploymentIP');
+    const bridgeSelect = document.getElementById('deploymentBridge');
+    const typeVMRadio = document.getElementById('typeVM');
+    const typeLXCRadio = document.getElementById('typeLXC');
+    const nodeSelect = document.getElementById('deploymentNode');
+    const autoSelectNode = document.getElementById('autoSelectNode');
     
-    ipConfigSelect.addEventListener('change', function() {
-        if (this.value === 'static') {
-            staticIPFields.classList.remove('d-none');
-        } else {
-            staticIPFields.classList.add('d-none');
-        }
+    // Preview elements
+    const previewName = document.getElementById('previewName');
+    const previewType = document.getElementById('previewType');
+    const previewIcon = document.getElementById('previewIcon');
+    const previewCPU = document.getElementById('previewCPU');
+    const previewMemory = document.getElementById('previewMemory');
+    const previewStorage = document.getElementById('previewStorage');
+    const previewIP = document.getElementById('previewIP');
+    const previewBridge = document.getElementById('previewBridge');
+    const previewNode = document.getElementById('previewNode');
+    
+    // Update preview on input changes
+    nameInput.addEventListener('input', updatePreview);
+    cpuInput.addEventListener('input', updatePreview);
+    memoryInput.addEventListener('input', updatePreview);
+    storageInput.addEventListener('input', updatePreview);
+    ipInput.addEventListener('input', updatePreview);
+    bridgeSelect.addEventListener('change', updatePreview);
+    typeVMRadio.addEventListener('change', updatePreview);
+    typeLXCRadio.addEventListener('change', updatePreview);
+    nodeSelect.addEventListener('change', updatePreview);
+    autoSelectNode.addEventListener('change', function() {
+        nodeSelect.disabled = this.checked;
+        updatePreview();
     });
     
-    // Form submission
-    const deploymentForm = document.getElementById('deploymentForm');
+    function updatePreview() {
+        // Update name
+        previewName.textContent = nameInput.value || 'New Deployment';
+        
+        // Update type
+        if (typeVMRadio.checked) {
+            previewType.textContent = 'Virtual Machine';
+            previewType.className = 'badge bg-primary mb-3';
+            previewIcon.innerHTML = '<i data-feather="monitor" style="width: 48px; height: 48px;"></i>';
+        } else {
+            previewType.textContent = 'LXC Container';
+            previewType.className = 'badge bg-success mb-3';
+            previewIcon.innerHTML = '<i data-feather="package" style="width: 48px; height: 48px;"></i>';
+        }
+        feather.replace();
+        
+        // Update resources
+        previewCPU.textContent = `${cpuInput.value} cores`;
+        previewMemory.textContent = `${memoryInput.value} MB`;
+        previewStorage.textContent = `${storageInput.value} GB`;
+        
+        // Update network
+        previewIP.textContent = ipInput.value || 'DHCP';
+        previewBridge.textContent = bridgeSelect.value;
+        
+        // Update node
+        if (autoSelectNode.checked) {
+            previewNode.textContent = 'Auto-select';
+        } else {
+            const selectedNode = nodeSelect.options[nodeSelect.selectedIndex];
+            previewNode.textContent = selectedNode ? selectedNode.text : 'None';
+        }
+    }
+    
+    // Handle form submission
     deploymentForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Show loading state
-        const submitButton = this.querySelector('button[type="submit"]');
-        const originalText = submitButton.innerHTML;
-        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deploying...';
-        submitButton.disabled = true;
+        // Show loading overlay
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.className = 'position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center';
+        loadingOverlay.style.zIndex = '9999';
+        loadingOverlay.innerHTML = `
+            <div class="text-center text-white">
+                <div class="spinner-border mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                <h5>Creating Deployment...</h5>
+                <p>This may take a minute or two.</p>
+            </div>
+        `;
+        document.body.appendChild(loadingOverlay);
         
-        // Prepare data
+        // Get form data
         const formData = {
-            name: document.getElementById('deploymentName').value,
-            type: document.getElementById('deploymentType').value,
-            node_id: document.getElementById('deploymentNode').value,
+            type: typeVMRadio.checked ? 'vm' : 'lxc',
+            name: nameInput.value,
             template: document.getElementById('deploymentTemplate').value,
-            cpu: parseInt(document.getElementById('deploymentCPU').value),
-            memory: parseInt(document.getElementById('deploymentMemory').value),
-            storage: parseInt(document.getElementById('deploymentStorage').value),
-            ip_config: document.getElementById('deploymentIPConfig').value,
-            tags: document.getElementById('deploymentTags').value.split(',').map(tag => tag.trim())
+            cpu: parseInt(cpuInput.value),
+            memory: parseInt(memoryInput.value),
+            storage: parseInt(storageInput.value),
+            ip_address: ipInput.value || null,
+            bridge: bridgeSelect.value,
+            node: autoSelectNode.checked ? 'auto' : nodeSelect.value,
+            install_ssh_keys: document.getElementById('installSSHKeys').checked,
+            install_monitoring: document.getElementById('installMonitoring').checked
         };
         
-        // Add static IP config if selected
-        if (formData.ip_config === 'static') {
-            formData.ip_address = document.getElementById('deploymentIPAddress').value;
-            formData.netmask = document.getElementById('deploymentNetmask').value;
-            formData.gateway = document.getElementById('deploymentGateway').value;
-            formData.dns = document.getElementById('deploymentDNS').value;
-        }
-        
-        // Send request to API
+        // Send deployment request
         fetch('/api/deploy', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(formData),
         })
         .then(response => response.json())
         .then(data => {
+            // Remove loading overlay
+            document.body.removeChild(loadingOverlay);
+            
             if (data.error) {
-                alert('Deployment failed: ' + data.details);
-                submitButton.innerHTML = originalText;
-                submitButton.disabled = false;
+                alert(`Deployment failed: ${data.details || data.error}`);
             } else {
-                // Show success message and redirect
-                alert('Deployment successful!');
-                window.location.href = '/deployments';
+                // Show success message
+                const successOverlay = document.createElement('div');
+                successOverlay.className = 'position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center';
+                successOverlay.style.zIndex = '9999';
+                successOverlay.innerHTML = `
+                    <div class="card border-0 p-4 shadow-lg">
+                        <div class="text-center mb-4">
+                            <div class="bg-success text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                                <i data-feather="check" style="width: 32px; height: 32px;"></i>
+                            </div>
+                            <h4>Deployment Successful!</h4>
+                            <p class="text-muted">Your deployment is now being created.</p>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a href="/deployments" class="btn btn-primary">View Deployments</a>
+                            <button class="btn btn-outline-secondary" onclick="document.body.removeChild(this.closest('.position-fixed'))">Close</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(successOverlay);
+                feather.replace();
             }
         })
         .catch(error => {
-            alert('An error occurred: ' + error.message);
-            submitButton.innerHTML = originalText;
-            submitButton.disabled = false;
+            document.body.removeChild(loadingOverlay);
+            alert(`Error: ${error.message}`);
         });
     });
+    
+    // Initialize preview
+    updatePreview();
 });
 </script>
 {% endblock %}

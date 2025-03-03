@@ -23,3 +23,37 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Feather icons
+    feather.replace();
+    
+    // Refresh templates button
+    const refreshBtn = document.getElementById('refreshTemplatesBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            const originalContent = refreshBtn.innerHTML;
+            refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Refreshing...';
+            refreshBtn.disabled = true;
+            
+            // Simulate refresh delay in dev mode
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        });
+    }
+    
+    // Add hover effect to template cards
+    const templateCards = document.querySelectorAll('.template-card');
+    templateCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.classList.add('shadow');
+            this.style.transform = 'translateY(-5px)';
+            this.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.classList.remove('shadow');
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});

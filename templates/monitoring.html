@@ -1,150 +1,242 @@
+
 {% extends "layout.html" %}
 
 {% block content %}
 <div class="container">
-    <h2 class="mb-4"><i data-feather="activity"></i> System Monitoring</h2>
-
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-primary bg-gradient text-white">
-                    <h5 class="mb-0">CPU Usage</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="cpuChart"></canvas>
-                </div>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i data-feather="activity" class="me-2"></i> System Monitoring
+        </h2>
+        <div>
+            <button id="refreshMetricsBtn" class="btn btn-outline-secondary">
+                <i data-feather="refresh-cw"></i> Refresh Metrics
+            </button>
         </div>
-        <div class="col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-primary bg-gradient text-white">
-                    <h5 class="mb-0">Memory Usage</h5>
+    </div>
+
+    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+        <i data-feather="info" class="me-2"></i>
+        <div>
+            Monitoring shows real-time metrics from all your Proxmox nodes and deployments.
+        </div>
+    </div>
+
+    <!-- Nodes Health Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Nodes Health Overview</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="memoryChart"></canvas>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Node</th>
+                                    <th>Status</th>
+                                    <th>CPU</th>
+                                    <th>Memory</th>
+                                    <th>Storage</th>
+                                    <th>Network</th>
+                                    <th>Uptime</th>
+                                </tr>
+                            </thead>
+                            <tbody id="nodesTable">
+                                <tr>
+                                    <td>Production Node 1</td>
+                                    <td><span class="badge bg-success">Online</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 15%"></div>
+                                            </div>
+                                            <span class="ms-2">15%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar bg-info" role="progressbar" style="width: 25%"></div>
+                                            </div>
+                                            <span class="ms-2">25%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar bg-primary" role="progressbar" style="width: 40%"></div>
+                                            </div>
+                                            <span class="ms-2">40%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">Healthy</span>
+                                    </td>
+                                    <td>14d 3h 27m</td>
+                                </tr>
+                                <tr>
+                                    <td>Development Node</td>
+                                    <td><span class="badge bg-success">Online</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 10%"></div>
+                                            </div>
+                                            <span class="ms-2">10%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar bg-info" role="progressbar" style="width: 20%"></div>
+                                            </div>
+                                            <span class="ms-2">20%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar bg-primary" role="progressbar" style="width: 30%"></div>
+                                            </div>
+                                            <span class="ms-2">30%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">Healthy</span>
+                                    </td>
+                                    <td>7d 12h 15m</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-8 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-primary bg-gradient text-white">
-                    <h5 class="mb-0">Network Traffic</h5>
+    <!-- Resource Usage Charts -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">CPU Utilization (24h)</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="networkChart"></canvas>
+                    <canvas id="cpuChart" height="250"></canvas>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-primary bg-gradient text-white">
-                    <h5 class="mb-0">Storage Usage</h5>
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Memory Utilization (24h)</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="storageChart"></canvas>
+                    <canvas id="memoryChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Storage Utilization</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="storageChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-lg h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="card-title mb-0">Network Traffic (24h)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="networkChart" height="250"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-primary bg-gradient text-white">
-            <h5 class="mb-0">Node Status</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Node</th>
-                            <th>Status</th>
-                            <th>CPU</th>
-                            <th>Memory</th>
-                            <th>Storage</th>
-                            <th>Network</th>
-                            <th>Last Update</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Production Node 1</td>
-                            <td><span class="node-status badge bg-success">Healthy</span></td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">15%</span>
-                                    <div class="gauge-container">
-                                        <div class="gauge-fill gauge-low" style="width: 15%"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">25%</span>
-                                    <div class="gauge-container">
-                                        <div class="gauge-fill gauge-low" style="width: 25%"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">40%</span>
-                                    <div class="gauge-container">
-                                        <div class="gauge-fill gauge-medium" style="width: 40%"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">20%</span>
-                                    <div class="gauge-container">
-                                        <div class="gauge-fill gauge-low" style="width: 20%"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>Just now</td>
-                        </tr>
-                        <tr>
-                            <td>Development Node</td>
-                            <td><span class="node-status badge bg-success">Healthy</span></td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">45%</span>
-                                    <div class="gauge-container">
-                                        <div class="gauge-fill gauge-medium" style="width: 45%"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">60%</span>
-                                    <div class="gauge-container">
-                                        <div class="gauge-fill gauge-medium" style="width: 60%"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">30%</span>
-                                    <div class="gauge-container">
-                                        <div class="gauge-fill gauge-low" style="width: 30%"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">15%</span>
-                                    <div class="gauge-container">
-                                        <div class="gauge-fill gauge-low" style="width: 15%"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>Just now</td>
-                        </tr>
-                    </tbody>
-                </table>
+    <!-- Active Deployments -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Active Deployments</h5>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i data-feather="filter"></i> Filter
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i data-feather="download"></i> Export
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>CPU Usage</th>
+                                    <th>Memory</th>
+                                    <th>Storage</th>
+                                    <th>Uptime</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deploymentsTable">
+                                <!-- Demo deployments - these would be populated dynamically -->
+                                <tr>
+                                    <td>web-server-1</td>
+                                    <td><span class="badge bg-primary">VM</span></td>
+                                    <td><span class="badge bg-success">Running</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 22%"></div>
+                                            </div>
+                                            <span class="ms-2">22%</span>
+                                        </div>
+                                    </td>
+                                    <td>1.2GB / 4GB</td>
+                                    <td>12GB / 20GB</td>
+                                    <td>3d 8h 45m</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i data-feather="activity"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>db-server</td>
+                                    <td><span class="badge bg-success">LXC</span></td>
+                                    <td><span class="badge bg-success">Running</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar bg-warning" role="progressbar" style="width: 65%"></div>
+                                            </div>
+                                            <span class="ms-2">65%</span>
+                                        </div>
+                                    </td>
+                                    <td>1.8GB / 2GB</td>
+                                    <td>28GB / 50GB</td>
+                                    <td>5d 12h 30m</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i data-feather="activity"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -152,5 +244,6 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ url_for('static', filename='js/monitoring.js') }}"></script>
 {% endblock %}
