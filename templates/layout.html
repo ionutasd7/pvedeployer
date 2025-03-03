@@ -6,9 +6,65 @@
     <title>Proxmox Deployment Interface</title>
     <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+    <style>
+        /* Modern, futuristic theme enhancements */
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+        }
+        .navbar {
+            backdrop-filter: blur(10px);
+            background: rgba(33, 37, 41, 0.8) !important;
+        }
+        .card {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(33, 37, 41, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        .form-control, .form-select {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            transition: all 0.3s;
+            opacity: 0;
+        }
+        .btn-primary:hover::after {
+            opacity: 1;
+        }
+        .nav-link {
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #0dcaf0;
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="/">
                 <i data-feather="server"></i>
@@ -26,7 +82,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#nodes">
+                        <a class="nav-link" href="{{ url_for('nodes.list_nodes') }}">
                             <i data-feather="hard-drive"></i> Nodes
                         </a>
                     </li>
@@ -63,7 +119,7 @@
 
     <div class="container mt-4">
         {% if not config.get('PROXMOX_HOST') and current_user.is_authenticated %}
-        <div class="alert alert-warning" role="alert">
+        <div class="alert alert-warning bg-gradient" role="alert">
             <h4 class="alert-heading"><i data-feather="info"></i> Development Mode Active</h4>
             <p>Running with mock data. To connect to a real Proxmox server, set these environment variables:</p>
             <ul>
