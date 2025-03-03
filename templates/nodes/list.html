@@ -26,28 +26,31 @@
                     <div class="mb-3">
                         <strong>Host:</strong> {{ node.host }}
                     </div>
-                    
+
                     <div class="resource-stats">
-                        {% if node.resources %}
+                        {% if node.resources and node.resources.nodes %}
                         <h6>Resources</h6>
                         <div class="progress mb-2">
                             <div class="progress-bar" role="progressbar" 
-                                 style="width: {{ (node.resources.cpu * 100)|round|int }}%">
-                                CPU: {{ (node.resources.cpu * 100)|round|int }}%
+                                 style="width: {{ (node.resources.nodes[0].status.cpu * 100)|round|int }}%">
+                                CPU: {{ (node.resources.nodes[0].status.cpu * 100)|round|int }}%
                             </div>
                         </div>
                         <div class="progress mb-2">
                             <div class="progress-bar" role="progressbar" 
-                                 style="width: {{ (node.resources.memory * 100)|round|int }}%">
-                                Memory: {{ (node.resources.memory * 100)|round|int }}%
+                                 style="width: {{ (node.resources.nodes[0].status.memory.used / node.resources.nodes[0].status.memory.total * 100)|round|int }}%">
+                                Memory: {{ (node.resources.nodes[0].status.memory.used / node.resources.nodes[0].status.memory.total * 100)|round|int }}%
                             </div>
                         </div>
+                        {% if node.resources.nodes[0].storage_info %}
                         <div class="progress">
+                            {% set storage = node.resources.nodes[0].storage_info[0] %}
                             <div class="progress-bar" role="progressbar" 
-                                 style="width: {{ (node.resources.storage * 100)|round|int }}%">
-                                Storage: {{ (node.resources.storage * 100)|round|int }}%
+                                 style="width: {{ (storage.used / storage.total * 100)|round|int }}%">
+                                Storage: {{ (storage.used / storage.total * 100)|round|int }}%
                             </div>
                         </div>
+                        {% endif %}
                         {% else %}
                         <div class="text-muted">
                             <i data-feather="alert-circle"></i> Resource data not available
@@ -91,14 +94,14 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const nodeId = this.dataset.nodeId;
             const icon = this.querySelector('i');
-            
+
             // Add spinning animation
             icon.classList.add('spin');
-            
+
             try {
                 const response = await fetch(`/nodes/${nodeId}/resources`);
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     // Refresh the page to show updated resources
                     location.reload();

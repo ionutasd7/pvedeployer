@@ -51,38 +51,6 @@ MOCK_RESOURCES = {
                 "memory": {"usage": 0.25},
                 "network": {"in": 100, "out": 50}
             }
-        },
-        {
-            "node": "pve-2",
-            "status": "online",
-            "cpu": 0.45,  # 45% CPU usage
-            "maxcpu": 24,
-            "memory": {
-                "total": 64 * 1024,  # 64GB in MB
-                "used": 48 * 1024,   # 48GB used
-                "free": 16 * 1024    # 16GB free
-            },
-            "status": {
-                "cpu": 0.45,
-                "memory": {
-                    "total": 64 * 1024,
-                    "used": 48 * 1024
-                }
-            },
-            "storage_info": [
-                {
-                    "storage": "local-lvm",
-                    "type": "lvm",
-                    "total": 1000,
-                    "used": 800,
-                    "avail": 200
-                }
-            ],
-            "metrics": {
-                "cpu": {"usage": 0.45},
-                "memory": {"usage": 0.75},
-                "network": {"in": 200, "out": 150}
-            }
         }
     ],
     "templates": [
@@ -195,7 +163,7 @@ with app.app_context():
                     is_active=True,
                     resources={
                         **MOCK_RESOURCES,
-                        'nodes': [MOCK_RESOURCES['nodes'][1]]  # Use the more heavily loaded node
+                        'nodes': [MOCK_RESOURCES['nodes'][0]]  # Use the less heavily loaded node
                     },
                     created_at=datetime.utcnow()
                 )
