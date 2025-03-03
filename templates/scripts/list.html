@@ -1,0 +1,221 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i data-feather="terminal"></i> Post-Deployment Scripts</h2>
+        <a href="{{ url_for('scripts.add_script') }}" class="btn btn-primary">
+            <i data-feather="plus"></i> Add Script
+        </a>
+    </div>
+
+    <!-- Monitoring Scripts -->
+    <div class="card border-0 shadow-lg bg-dark mb-4">
+        <div class="card-header bg-gradient">
+            <h5 class="mb-0">
+                <i data-feather="activity"></i> Monitoring Scripts
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if monitoring_scripts %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for script in monitoring_scripts %}
+                        <tr>
+                            <td>{{ script.name }}</td>
+                            <td>{{ script.description }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewScript{{ script.id }}">
+                                        <i data-feather="eye"></i> View
+                                    </button>
+                                    {% if not script.is_builtin %}
+                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteScript{{ script.id }}">
+                                        <i data-feather="trash-2"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-muted">
+                <i data-feather="info"></i> No monitoring scripts available
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- System Scripts -->
+    <div class="card border-0 shadow-lg bg-dark mb-4">
+        <div class="card-header bg-gradient">
+            <h5 class="mb-0">
+                <i data-feather="settings"></i> System Scripts
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if system_scripts %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for script in system_scripts %}
+                        <tr>
+                            <td>{{ script.name }}</td>
+                            <td>{{ script.description }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewScript{{ script.id }}">
+                                        <i data-feather="eye"></i> View
+                                    </button>
+                                    {% if not script.is_builtin %}
+                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteScript{{ script.id }}">
+                                        <i data-feather="trash-2"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-muted">
+                <i data-feather="info"></i> No system scripts available
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Custom Scripts -->
+    <div class="card border-0 shadow-lg bg-dark">
+        <div class="card-header bg-gradient">
+            <h5 class="mb-0">
+                <i data-feather="code"></i> Custom Scripts
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if custom_scripts %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for script in custom_scripts %}
+                        <tr>
+                            <td>{{ script.name }}</td>
+                            <td>{{ script.description }}</td>
+                            <td>{{ script.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewScript{{ script.id }}">
+                                        <i data-feather="eye"></i> View
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteScript{{ script.id }}">
+                                        <i data-feather="trash-2"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-muted">
+                <i data-feather="info"></i> No custom scripts available
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Script View Modals -->
+{% for script in monitoring_scripts + system_scripts + custom_scripts %}
+<div class="modal fade" id="viewScript{{ script.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ script.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6>Description</h6>
+                    <p>{{ script.description }}</p>
+                </div>
+                <div class="mb-3">
+                    <h6>Script Content</h6>
+                    <pre class="bg-black p-3 rounded"><code>{{ script.content }}</code></pre>
+                </div>
+                {% if script.executions %}
+                <div>
+                    <h6>Recent Executions</h6>
+                    <ul class="list-unstyled">
+                        {% for execution in script.executions[:5] %}
+                        <li class="mb-2">
+                            <span class="badge bg-{{ 'success' if execution.status == 'success' else 'danger' }}">
+                                {{ execution.status }}
+                            </span>
+                            {{ execution.started_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Delete Confirmation Modals -->
+{% for script in custom_scripts %}
+<div class="modal fade" id="deleteScript{{ script.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Script</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete "{{ script.name }}"?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('scripts.delete_script', script_id=script.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

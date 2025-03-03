@@ -11,10 +11,11 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_admin = db.Column(db.Boolean, default=False)
-    
+
     # Relationships
     proxmox_nodes = db.relationship('ProxmoxNode', backref='owner', lazy=True)
     deployments = db.relationship('Deployment', backref='owner', lazy=True)
+    scripts = db.relationship('Script', backref='owner', lazy=True)
 
 class ProxmoxNode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -28,7 +29,7 @@ class ProxmoxNode(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     resources = db.Column(JSONB)  # Stores current resource usage
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
+
     # Relationships
     storages = db.relationship('Storage', backref='node', lazy=True)
     deployments = db.relationship('Deployment', backref='node', lazy=True)
@@ -65,9 +66,32 @@ class Deployment(db.Model):
     tags = db.Column(JSONB)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
-    
+
     # Foreign Keys
     template_id = db.Column(db.Integer, db.ForeignKey('template.id'))
     storage_id = db.Column(db.Integer, db.ForeignKey('storage.id'), nullable=False)
     node_id = db.Column(db.Integer, db.ForeignKey('proxmox_node.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+class Script(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(128), nullable=False)
+    description = db.Column(db.Text)
+    content = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(32), nullable=False)  # 'monitoring', 'system', 'custom'
+    is_builtin = db.Column(db.Boolean, default=False)  # For pre-installed scripts
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # null for built-in scripts
+
+    # Script execution history
+    executions = db.relationship('ScriptExecution', backref='script', lazy=True)
+
+class ScriptExecution(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    script_id = db.Column(db.Integer, db.ForeignKey('script.id'), nullable=False)
+    deployment_id = db.Column(db.Integer, db.ForeignKey('deployment.id'), nullable=False)
+    status = db.Column(db.String(32), nullable=False)  # 'success', 'failed', 'running'
+    output = db.Column(db.Text)  # Script execution output/logs
+    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at = db.Column(db.DateTime)

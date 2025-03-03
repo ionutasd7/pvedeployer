@@ -1,0 +1,16 @@
+[Unit]
+Description=Proxmox Deployment Interface
+After=network.target postgresql.service
+
+[Service]
+User=proxmox-deployer
+Group=proxmox-deployer
+WorkingDirectory=/opt/proxmox-deployer
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/opt/proxmox-deployer/.env
+ExecStart=/usr/local/bin/gunicorn --bind 0.0.0.0:5000 --workers 4 --access-logfile - main:app
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

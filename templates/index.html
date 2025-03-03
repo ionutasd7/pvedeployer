@@ -1,119 +1,204 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 offset-md-2">
-        <div class="card border-0 shadow-lg bg-dark">
-            <div class="card-header bg-primary bg-gradient text-white">
-                <h4 class="mb-0 d-flex align-items-center">
-                    <i data-feather="cpu" class="me-2"></i>
-                    Deploy VM/Container
-                </h4>
+<div class="container">
+    <!-- Resource Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-lg bg-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i data-feather="cpu" class="text-primary" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-0">Total vCPU</h6>
+                            <h3 class="mb-0">{{ resource_summary.vcpu_total }} Cores</h3>
+                            <small class="text-muted">{{ resource_summary.vcpu_used }} cores in use</small>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <form id="deployForm">
-                    <div class="mb-4">
-                        <div class="recommended-node-panel mb-3 d-none">
-                            <div class="alert alert-info bg-gradient">
-                                <h5 class="alert-heading">
-                                    <i data-feather="trending-up"></i>
-                                    Recommended Node
-                                </h5>
-                                <div id="nodeRecommendation">
-                                    Loading recommendation...
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-lg bg-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i data-feather="database" class="text-info" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-0">Total RAM</h6>
+                            <h3 class="mb-0">{{ resource_summary.ram_total }}GB</h3>
+                            <small class="text-muted">{{ resource_summary.ram_used }}GB in use</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-lg bg-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i data-feather="hard-drive" class="text-success" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-0">Total Storage</h6>
+                            <h3 class="mb-0">{{ resource_summary.storage_total }}TB</h3>
+                            <small class="text-muted">{{ resource_summary.storage_used }}TB in use</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deployment Form -->
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-0 shadow-lg bg-dark">
+                <div class="card-header bg-primary bg-gradient text-white">
+                    <h4 class="mb-0 d-flex align-items-center">
+                        <i data-feather="cpu" class="me-2"></i>
+                        Deploy VM/Container
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form id="deployForm">
+                        <!-- Node Selection -->
+                        <div class="mb-4">
+                            <label class="form-label">Target Node</label>
+                            <select class="form-select form-select-lg bg-dark text-light" name="node" required>
+                                <option value="">Select deployment node...</option>
+                                {% for node in nodes %}
+                                <option value="{{ node.id }}">{{ node.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="recommended-node-panel mb-3 d-none">
+                                <div class="alert alert-info bg-gradient">
+                                    <h5 class="alert-heading">
+                                        <i data-feather="trending-up"></i>
+                                        Recommended Node
+                                    </h5>
+                                    <div id="nodeRecommendation">
+                                        Loading recommendation...
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Deployment Type</label>
+                                    <select class="form-select form-select-lg bg-dark text-light" name="type" required>
+                                        <option value="lxc">LXC Container</option>
+                                        <option value="vm">Virtual Machine</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Storage Location</label>
+                                    <select class="form-select form-select-lg bg-dark text-light" name="storage_location" required>
+                                        <option value="">Loading storages...</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Deployment Type</label>
-                                <select class="form-select form-select-lg bg-dark text-light" name="type" required>
-                                    <option value="lxc">LXC Container</option>
-                                    <option value="vm">Virtual Machine</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Storage Location</label>
-                                <select class="form-select form-select-lg bg-dark text-light" name="storage_location" required>
-                                    <option value="">Loading storages...</option>
-                                </select>
+                        <div class="mb-4">
+                            <label class="form-label">Template</label>
+                            <select class="form-select form-select-lg bg-dark text-light" name="template" required>
+                                <option value="">Loading templates...</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Name</label>
+                                    <input type="text" class="form-control form-control-lg bg-dark text-light" name="name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Static IP</label>
+                                    <input type="text" class="form-control form-control-lg bg-dark text-light" 
+                                           name="ip_address" placeholder="e.g., 192.168.1.100" required
+                                           pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="mb-4">
-                        <label class="form-label">Template</label>
-                        <select class="form-select form-select-lg bg-dark text-light" name="template" required>
-                            <option value="">Loading templates...</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-4">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Name</label>
-                                <input type="text" class="form-control form-control-lg bg-dark text-light" name="name" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Static IP</label>
-                                <input type="text" class="form-control form-control-lg bg-dark text-light" 
-                                       name="ip_address" placeholder="e.g., 192.168.1.100" required
-                                       pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="resource-config mb-4">
-                        <h5 class="text-primary mb-3">Resource Configuration</h5>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">CPU Cores</label>
-                                <select class="form-select bg-dark text-light" name="cpu" required>
-                                    <option value="1">1 Core</option>
-                                    <option value="2">2 Cores</option>
-                                    <option value="4">4 Cores</option>
-                                    <option value="8">8 Cores</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Memory (MB)</label>
-                                <select class="form-select bg-dark text-light" name="memory" required>
-                                    <option value="512">512 MB</option>
-                                    <option value="1024">1 GB</option>
-                                    <option value="2048">2 GB</option>
-                                    <option value="4096">4 GB</option>
-                                    <option value="8192">8 GB</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Storage (GB)</label>
-                                <select class="form-select bg-dark text-light" name="storage" required>
-                                    <option value="8">8 GB</option>
-                                    <option value="16">16 GB</option>
-                                    <option value="32">32 GB</option>
-                                    <option value="64">64 GB</option>
-                                </select>
+                        <div class="resource-config mb-4">
+                            <h5 class="text-primary mb-3">Resource Configuration</h5>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">CPU Cores</label>
+                                    <select class="form-select bg-dark text-light" name="cpu" required>
+                                        <option value="1">1 Core</option>
+                                        <option value="2">2 Cores</option>
+                                        <option value="4">4 Cores</option>
+                                        <option value="8">8 Cores</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Memory (MB)</label>
+                                    <select class="form-select bg-dark text-light" name="memory" required>
+                                        <option value="512">512 MB</option>
+                                        <option value="1024">1 GB</option>
+                                        <option value="2048">2 GB</option>
+                                        <option value="4096">4 GB</option>
+                                        <option value="8192">8 GB</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Storage (GB)</label>
+                                    <select class="form-select bg-dark text-light" name="storage" required>
+                                        <option value="8">8 GB</option>
+                                        <option value="16">16 GB</option>
+                                        <option value="32">32 GB</option>
+                                        <option value="64">64 GB</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="mb-4">
-                        <h5 class="text-primary mb-3">Tags</h5>
-                        <input type="text" class="form-control form-control-lg bg-dark text-light" 
-                               name="tags" placeholder="e.g., production, web-server, database">
-                        <div class="form-text">Separate tags with commas</div>
-                    </div>
+                        <div class="mb-4">
+                            <h5 class="text-primary mb-3">Post-Deployment Scripts</h5>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="enable_ssh" id="enable_ssh">
+                                <label class="form-check-label" for="enable_ssh">
+                                    Enable SSH Access
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="install_monitoring" id="install_monitoring">
+                                <label class="form-check-label" for="install_monitoring">
+                                    Install Monitoring Agent
+                                </label>
+                            </div>
+                            <a href="{{ url_for('scripts.manage') }}" class="btn btn-sm btn-outline-primary">
+                                <i data-feather="settings"></i> Manage Scripts
+                            </a>
+                        </div>
 
-                    <div class="alert alert-danger d-none" id="errorAlert"></div>
-                    <div class="alert alert-success d-none" id="successAlert"></div>
+                        <div class="mb-4">
+                            <h5 class="text-primary mb-3">Tags</h5>
+                            <input type="text" class="form-control form-control-lg bg-dark text-light" 
+                                   name="tags" placeholder="e.g., production, web-server, database">
+                            <div class="form-text">Separate tags with commas</div>
+                        </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100" id="deployBtn">
-                        <span class="spinner-border spinner-border-sm d-none" id="deploySpinner"></span>
-                        <i data-feather="play-circle" class="me-2"></i>
-                        Deploy
-                    </button>
-                </form>
+                        <div class="alert alert-danger d-none" id="errorAlert"></div>
+                        <div class="alert alert-success d-none" id="successAlert"></div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100" id="deployBtn">
+                            <span class="spinner-border spinner-border-sm d-none" id="deploySpinner"></span>
+                            <i data-feather="play-circle" class="me-2"></i>
+                            Deploy
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

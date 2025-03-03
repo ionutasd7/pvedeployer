@@ -191,15 +191,47 @@ else:
 # Register blueprints
 from routes.auth import auth as auth_blueprint
 from routes.nodes import nodes as nodes_blueprint
+from routes.scripts import scripts as scripts_blueprint
 
 app.register_blueprint(auth_blueprint)
 app.register_blueprint(nodes_blueprint)
+app.register_blueprint(scripts_blueprint)
 
 @app.route('/')
 def index():
     if not current_user.is_authenticated:
         return redirect(url_for('auth.login'))
-    return render_template('index.html')
+
+    resource_summary = {
+        'vcpu_total': 0,
+        'vcpu_used': 0,
+        'ram_total': 0,
+        'ram_used': 0,
+        'storage_total': 0,
+        'storage_used': 0
+    }
+
+    # Calculate resource totals from deployments
+    from models import Deployment, ProxmoxNode
+    deployments = Deployment.query.filter_by(user_id=current_user.id).all()
+    for deployment in deployments:
+        resource_summary['vcpu_used'] += deployment.cpu
+        resource_summary['ram_used'] += deployment.memory / 1024  # Convert MB to GB
+        resource_summary['storage_used'] += deployment.storage
+
+    # Get total available resources from nodes
+    nodes = ProxmoxNode.query.filter_by(user_id=current_user.id).all()
+    for node in nodes:
+        if node.resources and node.resources.get('nodes'):
+            node_data = node.resources['nodes'][0]
+            resource_summary['vcpu_total'] += node_data.get('maxcpu', 0)
+            resource_summary['ram_total'] += node_data.get('memory', {}).get('total', 0) / 1024 / 1024  # Convert MB to GB
+
+            # Sum up storage from all storage pools
+            for storage in node_data.get('storage_info', []):
+                resource_summary['storage_total'] += storage.get('total', 0) / 1024  # Convert GB to TB
+
+    return render_template('index.html', resource_summary=resource_summary)
 
 @app.route('/api/resources', methods=['GET'])
 @login_required

@@ -1,0 +1,175 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-0 shadow-lg bg-dark">
+                <div class="card-header bg-gradient">
+                    <h4 class="mb-0">
+                        <i data-feather="plus-circle"></i> Add New Script
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Script Name</label>
+                            <input type="text" class="form-control form-control-lg bg-dark text-light" 
+                                   id="name" name="name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control bg-dark text-light" 
+                                    id="description" name="description" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select bg-dark text-light" id="category" name="category" required>
+                                <option value="monitoring">Monitoring</option>
+                                <option value="system">System</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="script_content" class="form-label">Script Content</label>
+                            <div class="alert alert-info">
+                                <i data-feather="info"></i> Available Variables:
+                                <ul class="mb-0">
+                                    <li><code>${IP_ADDRESS}</code> - VM/Container IP address</li>
+                                    <li><code>${HOSTNAME}</code> - VM/Container hostname</li>
+                                    <li><code>${SSH_PORT}</code> - SSH port (default: 22)</li>
+                                </ul>
+                            </div>
+                            <textarea class="form-control bg-dark text-light font-monospace" 
+                                    id="script_content" name="script_content" rows="15" required></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="test_script" name="test_script">
+                                <label class="form-check-label" for="test_script">
+                                    Test script before saving
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-danger d-none" id="errorAlert"></div>
+                        <div class="alert alert-success d-none" id="successAlert"></div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('scripts.list_scripts') }}" class="btn btn-secondary">
+                                <i data-feather="arrow-left"></i> Back to Scripts
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i data-feather="save"></i> Save Script
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const scriptContent = document.getElementById('script_content');
+    const testScript = document.getElementById('test_script');
+    const errorAlert = document.getElementById('errorAlert');
+    const successAlert = document.getElementById('successAlert');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        errorAlert.classList.add('d-none');
+        successAlert.classList.add('d-none');
+
+        try {
+            if (testScript.checked) {
+                // Test script before saving
+                const response = await fetch('/scripts/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: scriptContent.value
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Script test failed');
+                }
+
+                successAlert.textContent = 'Script test successful!';
+                successAlert.classList.remove('d-none');
+            }
+
+            // Submit the form
+            form.submit();
+        } catch (error) {
+            errorAlert.textContent = error.message;
+            errorAlert.classList.remove('d-none');
+        }
+    });
+
+    // Add sample script templates
+    const category = document.getElementById('category');
+    category.addEventListener('change', function() {
+        let template = '';
+        switch (this.value) {
+            case 'monitoring':
+                template = `#!/bin/bash
+# Install and configure monitoring agent
+# Available variables: ${IP_ADDRESS}, ${HOSTNAME}
+
+# Update package list
+apt-get update
+
+# Install monitoring agent
+apt-get install -y zabbix-agent
+
+# Configure agent
+sed -i "s/Server=127.0.0.1/Server=monitor.example.com/" /etc/zabbix/zabbix_agentd.conf
+sed -i "s/ServerActive=127.0.0.1/ServerActive=monitor.example.com/" /etc/zabbix/zabbix_agentd.conf
+sed -i "s/Hostname=.*/Hostname=${HOSTNAME}/" /etc/zabbix/zabbix_agentd.conf
+
+# Restart agent
+systemctl restart zabbix-agent`;
+                break;
+            case 'system':
+                template = `#!/bin/bash
+# System configuration script
+# Available variables: ${IP_ADDRESS}, ${HOSTNAME}
+
+# Update system
+apt-get update
+apt-get upgrade -y
+
+# Configure timezone
+timedatectl set-timezone UTC
+
+# Basic security settings
+ufw allow ${SSH_PORT}/tcp
+ufw enable`;
+                break;
+            default:
+                template = `#!/bin/bash
+# Custom script
+# Available variables: ${IP_ADDRESS}, ${HOSTNAME}, ${SSH_PORT}
+
+# Add your commands here`;
+        }
+        if (!scriptContent.value) {
+            scriptContent.value = template;
+        }
+    });
+});
+</script>
+{% endblock %}
