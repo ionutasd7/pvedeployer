@@ -1,4 +1,3 @@
-
 #!/bin/bash
 set -e
 
@@ -22,23 +21,23 @@ fi
 # Function to prompt for environment variables
 setup_environment() {
     echo -e "\n${GREEN}Setting up environment variables...${NC}"
-    
+
     # Create .env file
     ENV_FILE="/opt/proxmox-deployer/.env"
-    
+
     # Database URL
     read -p "Enter PostgreSQL database URL (e.g., postgresql://user:password@localhost/proxmox_db): " DB_URL
-    
+
     # Proxmox connection details
     echo -e "\n${YELLOW}Proxmox connection details (leave empty for development mode):${NC}"
     read -p "Proxmox host IP: " PROXMOX_HOST
     read -p "Proxmox user (e.g., root@pam): " PROXMOX_USER
     read -p "Proxmox password: " -s PROXMOX_PASSWORD
     echo
-    
+
     # Generate a random secret key
     SESSION_SECRET=$(openssl rand -hex 32)
-    
+
     # Create .env file
     sudo bash -c "cat > $ENV_FILE << EOL
 DATABASE_URL=$DB_URL
@@ -47,12 +46,13 @@ PROXMOX_HOST=$PROXMOX_HOST
 PROXMOX_USER=$PROXMOX_USER
 PROXMOX_PASSWORD=$PROXMOX_PASSWORD
 DEBUG=False
+TESTING=False
 EOL"
-    
+
     # Set proper permissions
     sudo chown proxmox-deployer:proxmox-deployer $ENV_FILE
     sudo chmod 600 $ENV_FILE
-    
+
     echo -e "${GREEN}Environment variables configured!${NC}"
 }
 
@@ -78,7 +78,15 @@ fi
 
 echo -e "\n${GREEN}Installing Python dependencies...${NC}"
 cd /opt/proxmox-deployer
+
+# Install production dependencies
 sudo -u proxmox-deployer pip3 install -r requirements.txt
+
+# Install development dependencies if in development mode
+if [ -z "$PROXMOX_HOST" ]; then
+    echo -e "\n${YELLOW}Installing development dependencies...${NC}"
+    sudo -u proxmox-deployer pip3 install pytest pytest-cov flake8
+fi
 
 # Setup environment variables
 setup_environment
@@ -99,7 +107,7 @@ if [ -z "$DOMAIN_NAME" ]; then
 server {
     listen 80;
     server_name _;
-    
+
     location / {
         proxy_pass http://127.0.0.1:5000;
         proxy_set_header Host \$host;
@@ -115,7 +123,7 @@ else
 server {
     listen 80;
     server_name $DOMAIN_NAME;
-    
+
     location / {
         proxy_pass http://127.0.0.1:5000;
         proxy_set_header Host \$host;
@@ -137,6 +145,13 @@ if [ ! -z "$DOMAIN_NAME" ]; then
     if [[ "$SETUP_SSL" =~ ^[Yy]$ ]]; then
         sudo certbot --nginx -d $DOMAIN_NAME
     fi
+fi
+
+# Run tests in development mode
+if [ -z "$PROXMOX_HOST" ]; then
+    echo -e "\n${GREEN}Running tests...${NC}"
+    cd /opt/proxmox-deployer
+    sudo -u proxmox-deployer python3 -m pytest tests/
 fi
 
 # Initialize the database
@@ -161,5 +176,6 @@ fi
 echo
 echo -e "To check the service status: ${YELLOW}sudo systemctl status proxmox-deployer${NC}"
 echo -e "View logs with: ${YELLOW}sudo journalctl -u proxmox-deployer${NC}"
+echo -e "Run tests with: ${YELLOW}cd /opt/proxmox-deployer && python3 -m pytest tests/${NC}"
 echo
 echo -e "${GREEN}Thank you for installing Proxmox Deployment Interface!${NC}"
