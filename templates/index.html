@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Deploy VM/Container</h4>
+            </div>
+            <div class="card-body">
+                <form id="deployForm">
+                    <div class="mb-3">
+                        <label class="form-label">Deployment Type</label>
+                        <select class="form-select" name="type" required>
+                            <option value="lxc">LXC Container</option>
+                            <option value="vm">Virtual Machine</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Template</label>
+                        <select class="form-select" name="template" required>
+                            <option value="">Loading templates...</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">CPU Cores</label>
+                                <select class="form-select" name="cpu" required>
+                                    <option value="1">1 Core</option>
+                                    <option value="2">2 Cores</option>
+                                    <option value="4">4 Cores</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Memory (MB)</label>
+                                <select class="form-select" name="memory" required>
+                                    <option value="512">512 MB</option>
+                                    <option value="1024">1 GB</option>
+                                    <option value="2048">2 GB</option>
+                                    <option value="4096">4 GB</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Storage (GB)</label>
+                                <select class="form-select" name="storage" required>
+                                    <option value="8">8 GB</option>
+                                    <option value="16">16 GB</option>
+                                    <option value="32">32 GB</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-danger d-none" id="errorAlert"></div>
+                    <div class="alert alert-success d-none" id="successAlert"></div>
+
+                    <button type="submit" class="btn btn-primary" id="deployBtn">
+                        <span class="spinner-border spinner-border-sm d-none" id="deploySpinner"></span>
+                        Deploy
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}
